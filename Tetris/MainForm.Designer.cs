@@ -1,6 +1,6 @@
 ﻿namespace Tetris
 {
-    partial class tetris
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(tetris));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.UITimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 

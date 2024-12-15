@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Tetris
 {
-    public partial class tetris : Form
+    public partial class MainForm : Form
     {
         class Grid
         {
@@ -80,8 +80,8 @@ namespace Tetris
         //当前的offwet
         SceneOffset currentOffset = null;
         //下落速度
-        const int dropSpeed = 5;
-        const int timerInterval = 50;
+        const int dropSpeed = 100;
+        const int timerInterval = 1;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -109,7 +109,7 @@ namespace Tetris
         //当前游戏状态
         GameState gameState = GameState.NextRound;
 
-        public tetris()
+        public MainForm()
         {
             InitializeComponent();
             InitForm();
@@ -128,7 +128,7 @@ namespace Tetris
             //窗口大小
             this.ClientSize = new Size((kSceneWidth + kPreviewWidth) * kGridSize + 30, (kSceneHeight) * kGridSize + 40);
             //窗口背景
-            this.BackColor = Color.Chocolate;
+            this.BackColor = Color.LightGray;
             //双帧缓冲打开
             this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             this.UpdateStyles();
@@ -320,11 +320,11 @@ namespace Tetris
                     RunGridMove(Direction.RIGHT);
                     break;
                 case Keys.K:
-                    IsAiControl = true;
+                    IsAiControl = !IsAiControl;
                     CalcAICtrl();
                     break;
-                case Keys.Escape:
-                    IsAiControl = false;
+                case Keys.Space:
+                    UITimer.Enabled = !UITimer.Enabled;
                     break;
             }
         }
@@ -413,7 +413,7 @@ namespace Tetris
 
         void CalcAICtrl()
         {
-           // CalcAI1();
+            // CalcAI1();
             CalcAI2();
         }
 
@@ -791,7 +791,7 @@ namespace Tetris
                     }
                     if (lr == 2)
                     {
-                        if (lastY == y - 1)
+                        if (lastY == y - 1 && wells.Count > 0)
                         {
                             wells[wells.Count - 1]++;
                         }
@@ -1121,14 +1121,14 @@ namespace Tetris
 
         void DrawBorderLine(Graphics g)
         {
-            g.DrawRectangle(new Pen(Color.White, 2), new Rectangle(kScenePoint, kSceneSize));
-            g.DrawRectangle(new Pen(Color.White, 2), new Rectangle(kPreviewPoint, kPreviewSize));
+            g.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(kScenePoint, kSceneSize));
+            g.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(kPreviewPoint, kPreviewSize));
             g.FillRectangle(GameBkgrd, new Rectangle(kScenePoint.X + 1, kScenePoint.Y + 1, kSceneSize.Width - 2, kSceneSize.Height - 2));
             g.FillRectangle(GameBkgrd, new Rectangle(kPreviewPoint.X + 1, kPreviewPoint.Y + 1, kPreviewSize.Width - 2, kPreviewSize.Height - 2));
         }
 
-        Brush showBrush = new SolidBrush(Color.White);
-        Brush GameBkgrd = new SolidBrush(Color.Black);
+        Brush showBrush = new SolidBrush(Color.Black);
+        Brush GameBkgrd = new SolidBrush(Color.FromArgb(147, 174, 97));
         void DrawTetris(Graphics g)
         {
             List<Rectangle> allShown = new List<Rectangle>();
@@ -1165,7 +1165,7 @@ namespace Tetris
 
         void DrawScore(Graphics g)
         {
-            g.DrawString(string.Format("得分：{0}", GameScore), new Font("Arial", 10), new SolidBrush(Color.AliceBlue), kScorePoint.X, kScorePoint.Y);
+            g.DrawString(string.Format("得分：{0}", GameScore), new Font("Arial", 10), new SolidBrush(Color.Black), kScorePoint.X, kScorePoint.Y);
         }
     }
 }
