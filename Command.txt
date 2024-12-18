@@ -11,23 +11,29 @@ npm install node-sass
 #VS解决方案文件夹运行
 dotnet publish -r linux-arm
 
+#修改root密码
+sudo passwd root
+
+#允许root进行ssh登录
+nano /etc/ssh/sshd_config
+PermitRootLogin yes
+
 #树莓派换源
 修改/etc/apt/sources.list内容为
-deb http://mirrors.ustc.edu.cn/raspbian/raspbian/ stretch main contrib non-free rpi
-deb-src http://mirrors.ustc.edu.cn/raspbian/raspbian/ stretch main contrib non-free rpi
+将deb.debian.org域名换成mirrors.tuna.tsinghua.edu.cn
+
+#安装.NET8
+https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0 选择ARM版本的Runtime文件
+#解压文件内容到树莓派的/opt/dotnet文件夹中（创建dotnet文件夹），修改777权限
+nano ~/.bashrc
+export DOTNET_ROOT=/opt/dotnet
+export PATH=$PATH:/opt/dotnet
 
 #安装远程桌面
 sudo apt-get install xrdp
-
-#安装.NET8
-https://dotnet.microsoft.com/download 选择ARM版本的Runtime文件
-#解压文件内容到树莓派的/opt/dotnet文件夹中（需要创建dotnet文件夹）
-#在local/bin创建dotnet快捷方式
-sudo ln -s /opt/dotnet/dotnet /usr/local/bin
 
 #安装MySQL
 sudo apt-get install mysql-server
 
 #运行
 dotnet Ace.Web.Host.dll --server.urls "http://*:5000"
-dotnet Ace.Web.Host.dll --urls "http://*:5000"
