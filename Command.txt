@@ -19,8 +19,9 @@ nano /etc/ssh/sshd_config
 PermitRootLogin yes
 
 #树莓派换源
-修改/etc/apt/sources.list内容为
-将deb.debian.org域名换成mirrors.tuna.tsinghua.edu.cn
+修改/etc/apt/sources.list内容将deb.debian.org域名换成
+mirrors.aliyun.com
+mirrors.tuna.tsinghua.edu.cn
 
 #安装.NET8
 https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0 选择ARM版本的Runtime文件
