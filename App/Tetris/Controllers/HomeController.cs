@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+ï»¿using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -17,20 +17,20 @@ namespace Tetris.Controllers
 
         public IActionResult Index()
         {
-            // ´´½¨Ò»¸ö 100x100 µÄÍ¼Ïñ
+            // åˆ›å»ºä¸€ä¸ª 100x100 çš„å›¾åƒ
             using (var image = new Image<Rgba32>(100, 100))
             {
-                // Ìî³ä±³¾°Îª°×É«
+                // å¡«å……èƒŒæ™¯ä¸ºç™½è‰²
                 image.Mutate(x => x.Fill(Brushes.Solid(Color.Green), new Rectangle(50, 50, 50, 50)));
 
-                // »æÖÆÒ»¸öºìÉ«µÄ¾ØĞÎ
+                // ç»˜åˆ¶ä¸€ä¸ªçº¢è‰²çš„çŸ©å½¢
                 var rectangle = new Rectangle(10, 10, 80, 80);
                 image.Mutate(x => x.Fill(Color.Red, rectangle));
 
                 using (var ms = new MemoryStream())
                 {
-                    image.SaveAsPng(ms);  // ½«Í¼Ïñ±£´æÎª PNG ¸ñÊ½ 
-                    // ½«×Ö½ÚÊı×é×ª»»ÎªBase64×Ö·û´®
+                    image.SaveAsPng(ms);  // å°†å›¾åƒä¿å­˜ä¸º PNG æ ¼å¼ 
+                    // å°†å­—èŠ‚æ•°ç»„è½¬æ¢ä¸ºBase64å­—ç¬¦ä¸²
                     ViewData["image"] = Convert.ToBase64String(ms.ToArray());
                 }
             }

@@ -1,13 +1,13 @@
-using System.IO.Ports;
+ï»¿using System.IO.Ports;
 
 namespace App
 {
     public partial class MainForm : Form
     {
 
-        private const int rows = 4; // ĞĞÊı
-        private const int cols = 4; // ÁĞÊı
-        private bool[,] pixelData = new bool[rows, cols]; // ´æ´¢ÏñËØ×´Ì¬
+        private const int rows = 4; // è¡Œæ•°
+        private const int cols = 4; // åˆ—æ•°
+        private bool[,] pixelData = new bool[rows, cols]; // å­˜å‚¨åƒç´ çŠ¶æ€
         private SerialPort serialPort;
         private DataHandler dataHandler;
 
@@ -19,8 +19,8 @@ namespace App
             this.dataHandler = new DataHandler();
             this.dataHandler.DataReceived += DataHandler_DataReceived;
 
-            // ³õÊ¼»¯´®¿Ú
-            serialPort = new SerialPort("COM2", 9600); // ĞŞ¸ÄÎªÊµ¼ÊµÄ´®¿ÚºÅ
+            // åˆå§‹åŒ–ä¸²å£
+            serialPort = new SerialPort("COM2", 9600); // ä¿®æ”¹ä¸ºå®é™…çš„ä¸²å£å·
             serialPort.DataReceived += OnDataReceived;
             serialPort.Open();
         }
@@ -30,7 +30,7 @@ namespace App
             base.OnPaint(e);
             Graphics g = e.Graphics;
 
-            // »æÖÆÏñËØ¾ØÕó
+            // ç»˜åˆ¶åƒç´ çŸ©é˜µ
             int cellWidth = this.ClientSize.Width / cols;
             int cellHeight = this.ClientSize.Height / rows;
 
@@ -38,7 +38,7 @@ namespace App
             {
                 for (int j = 0; j < cols; j++)
                 {
-                    Brush brush = pixelData[i, j] ? Brushes.Black : Brushes.White; // ºÚÉ«±íÊ¾ÁÁ£¬°×É«±íÊ¾Ãğ
+                    Brush brush = pixelData[i, j] ? Brushes.Black : Brushes.White; // é»‘è‰²è¡¨ç¤ºäº®ï¼Œç™½è‰²è¡¨ç¤ºç­
                     g.FillRectangle(brush, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
                     g.DrawRectangle(Pens.Gray, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
                 }
@@ -48,19 +48,19 @@ namespace App
         private void DataHandler_DataReceived(bool[,] data)
         {
             pixelData = data;
-            this.Invoke(new Action(() => this.Invalidate())); // Ë¢ĞÂ´°Ìå
+            this.Invoke(new Action(() => this.Invalidate())); // åˆ·æ–°çª—ä½“
         }
 
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
-                if (serialPort.BytesToRead >= 4) // Èı¸öÊı¾İ×Ö½Ú + Ò»¸ö½áÊø·û
+                if (serialPort.BytesToRead >= 4) // ä¸‰ä¸ªæ•°æ®å­—èŠ‚ + ä¸€ä¸ªç»“æŸç¬¦
                 {
                     byte[] buffer = new byte[4];
                     serialPort.Read(buffer, 0, 4);
 
-                    // ¼ì²é×îºóÒ»¸ö×Ö½ÚÊÇ·ñÎª½áÊø·û
+                    // æ£€æŸ¥æœ€åä¸€ä¸ªå­—èŠ‚æ˜¯å¦ä¸ºç»“æŸç¬¦
                     if (buffer[3] == 0xFF)
                     {
                         byte[] dataBytes = new byte[3];
@@ -80,9 +80,9 @@ namespace App
             base.OnFormClosing(e);
             if (serialPort != null && serialPort.IsOpen)
             {
-                serialPort.DataReceived -= OnDataReceived; // ÒÆ³ıÊÂ¼ş´¦ÀíÆ÷
-                serialPort.Close(); // ¹Ø±Õ´®¿Ú
-                serialPort.Dispose(); // ÊÍ·Å×ÊÔ´
+                serialPort.DataReceived -= OnDataReceived; // ç§»é™¤äº‹ä»¶å¤„ç†å™¨
+                serialPort.Close(); // å…³é—­ä¸²å£
+                serialPort.Dispose(); // é‡Šæ”¾èµ„æº
             }
         }
     }
