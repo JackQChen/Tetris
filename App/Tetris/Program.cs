@@ -2,6 +2,9 @@ namespace Tetris
 {
     public class Program
     {
+
+        public static MainForm MainForm = new MainForm();
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
