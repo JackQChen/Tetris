@@ -234,11 +234,7 @@ namespace Tetris
         void GenerateNextTetris()
         {
             nextTetrisType = randGen.Next(7);//选择类型
-            nextChangeType = randGen.Next(4);//选择变体
-            //var d = File.ReadAllText(@"C:\GitHub\1.txt").Split(',');
-            //nextTetrisType = int.Parse(d[0]);
-            //nextChangeType = int.Parse(d[1]);
-
+            nextChangeType = randGen.Next(4);//选择变体 
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
             nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
             Console.WriteLine($"TetrisType={nextTetrisType}, ChangeType={nextChangeType}");
