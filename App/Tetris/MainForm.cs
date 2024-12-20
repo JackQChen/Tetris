@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using SixLabors.Fonts;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -81,8 +82,8 @@ namespace Tetris
         //当前的offwet
         SceneOffset currentOffset = null;
         //下落速度
-        const int dropSpeed = 5;
-        const int timerInterval = 50;
+        const int dropSpeed = 100;
+        const int timerInterval = 10;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -125,9 +126,12 @@ namespace Tetris
         void InitForm()
         {
             //定时器
-            this.UITimer = new Timer();
-            this.UITimer.Enabled = true;
-            this.UITimer.Interval = timerInterval;
+            this.UITimer = new Timer
+            {
+                Enabled = true,
+                AutoReset = false,
+                Interval = timerInterval,
+            };
             this.UITimer.Elapsed += OnTimer;
 
         }
@@ -316,8 +320,6 @@ namespace Tetris
             }
         }
 
-
-
         int dropCounter = 0;
         void OnTimer(object sender, EventArgs e)
         {
@@ -351,6 +353,7 @@ namespace Tetris
 
             //重绘整个窗口
             Paint();
+            this.UITimer.Start();
         }
 
         //一轮下落的开始
@@ -1157,7 +1160,7 @@ namespace Tetris
 
         void DrawScore(Image<Rgba32> g)
         {
-            //g.Mutate(x => x.DrawText($"得分：{GameScore}", new Font(new FontFamily(), 10), new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
+            g.Mutate(x => x.DrawText($"Score得分：{GameScore}", SystemFonts.CreateFont("Arial", 10), new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
     }
 }
