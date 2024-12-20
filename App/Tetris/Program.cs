@@ -3,10 +3,11 @@ namespace Tetris
     public class Program
     {
 
-        public static MainForm MainForm = new MainForm();
+        public static MainForm MainForm;
 
         public static void Main(string[] args)
         {
+            MainForm = new MainForm();
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.

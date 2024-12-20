@@ -112,8 +112,6 @@ namespace Tetris
         GameState gameState = GameState.NextRound;
         Timer UITimer;
 
-        public string Image { get; set; }
-
         public MainForm()
         {
             InitForm();
@@ -1093,7 +1091,7 @@ namespace Tetris
             gameState = GameState.Destroy;
         }
 
-        public void Paint()
+        public byte[] Paint()
         {
             using (var image = new Image<Rgba32>((kSceneWidth + kPreviewWidth) * kGridSize + 30, (kSceneHeight) * kGridSize + 40))
             {
@@ -1107,9 +1105,8 @@ namespace Tetris
                 DrawScore(image);
                 using (var ms = new MemoryStream())
                 {
-                    image.SaveAsPng(ms);  // 将图像保存为 PNG 格式 
-                    // 将字节数组转换为Base64字符串
-                    Image = Convert.ToBase64String(ms.ToArray());
+                    image.SaveAsPng(ms);  // 将图像保存为 PNG 格式
+                    return ms.ToArray();
                 }
             }
         }

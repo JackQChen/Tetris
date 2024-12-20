@@ -13,8 +13,13 @@ namespace Tetris.Controllers
 
         public IActionResult Index()
         {
-            ViewData["image"] = Program.MainForm.Image;
             return View();
+        }
+
+        public IActionResult GetImage()
+        {
+            var imageBytes = Program.MainForm.Paint();
+            return File(imageBytes, "image/png");
         }
 
     }

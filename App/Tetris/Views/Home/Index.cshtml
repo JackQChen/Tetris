@@ -1,12 +1,13 @@
 ﻿<html>
 <head>
     <script>
-        setTimeout(function () {
-            location.reload();
-        }, 100);
+        setInterval(function() {
+        var img = document.getElementById('image');
+        img.src = '/Home/GetImage?' + new Date().getTime();
+        }, 100); // 更新一次
     </script>
 </head>
 <body>
-    <img src="data:image/png;base64, @ViewData["image"]">
+    <img id="image" />
 </body>
 </html>
