@@ -239,7 +239,7 @@ namespace Tetris
             nextChangeType = randGen.Next(4);//选择变体
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
             nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-            Console.WriteLine($"{nextTetrisType},{nextChangeType},{nextOffset}");
+            Console.WriteLine($"TetrisType={nextTetrisType}, ChangeType={nextChangeType}");
         }
 
         //在某个坐标位置生成掉落方块
@@ -878,7 +878,7 @@ namespace Tetris
 
         void RunAISteps(int moveX, int change)
         {
-            Console.WriteLine($"MoveX:{moveX},Change:{change}");
+            Console.WriteLine($"MoveX={moveX}, Change={change}");
             while (change > 0)
             {
                 RunGridMove(Direction.UP);
