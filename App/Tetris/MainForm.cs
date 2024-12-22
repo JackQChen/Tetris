@@ -1157,7 +1157,7 @@ namespace Tetris
 
         void DrawScore(Image<Rgba32> g)
         {
-            g.Mutate(x => x.DrawText($"Score得分：{GameScore}", SystemFonts.CreateFont("Arial", 10), new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
+            g.Mutate(x => x.DrawText($"Score得分：{GameScore}", SystemFonts.CreateFont("DejaVu Sans", 10), new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
     }
 }
