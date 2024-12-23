@@ -1,13 +1,13 @@
 ﻿<html>
 <head>
-    <script>
-        setInterval(function() {
-        var img = document.getElementById('image');
-        img.src = '/Home/GetImage?' + new Date().getTime();
-        }, 300); // 更新一次
-    </script>
+	<script>
+		setInterval(function() {
+		var img = document.getElementById('image');
+		img.src = '/Home/GetImage?' + new Date().getTime();
+		}, 500); // 更新一次
+	</script>
 </head>
 <body>
-    <img id="image" />
+	<img id="image" />
 </body>
 </html>
