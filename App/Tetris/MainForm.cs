@@ -1,4 +1,6 @@
-﻿using SixLabors.Fonts;
+﻿using System.IO.Ports;
+using System.Runtime.InteropServices;
+using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -89,7 +91,7 @@ namespace Tetris
         int curTetrisType;
         //下次的选型
         int nextChangeType;
-        int nextTetrisType;
+        int nextTetrisType = -1;
         //积分系数
         int[] scoreParam = new int[4] { 10, 15, 20, 15 };
         int GameScore = 0;
@@ -111,6 +113,7 @@ namespace Tetris
         //当前游戏状态
         GameState gameState = GameState.NextRound;
         Timer UITimer;
+        SerialPort serialPort;
 
         public MainForm()
         {
@@ -118,7 +121,7 @@ namespace Tetris
             InitGrids();
             InitTetrisType();
             Restart();
-            OnKeyDown('k');
+            IsAiControl = true;
         }
 
         void InitForm()
@@ -132,6 +135,25 @@ namespace Tetris
             };
             this.UITimer.Elapsed += OnTimer;
 
+            // 初始化串口
+            serialPort = new SerialPort("/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            serialPort.DtrEnable = true;
+            serialPort.DataReceived += OnDataReceived;
+            serialPort.Open();
+        }
+
+        DateTime dtLastReceived = DateTime.MinValue;
+
+        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            var data = serialPort.ReadByte();
+            if (data == -1)
+                return;
+            if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
+                return;
+            dtLastReceived = DateTime.Now;
+            nextChangeType = data % 10;
+            nextTetrisType = data / 10;
         }
 
         void InitGrids()
@@ -233,11 +255,13 @@ namespace Tetris
 
         void GenerateNextTetris()
         {
-            nextTetrisType = randGen.Next(7);//选择类型
-            nextChangeType = randGen.Next(4);//选择变体 
+            //nextTetrisType = randGen.Next(7);//选择类型
+            //nextChangeType = randGen.Next(4);//选择变体 
+            if (nextTetrisType == -1)
+                return;
+            Console.WriteLine($"TetrisType={nextTetrisType}, ChangeType={nextChangeType}");
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
             nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-            Console.WriteLine($"TetrisType={nextTetrisType}, ChangeType={nextChangeType}");
         }
 
         //在某个坐标位置生成掉落方块
@@ -364,6 +388,8 @@ namespace Tetris
             {
                 GenerateNextTetris();
             }
+            if (nextTetrisType == -1)
+                return;
             currentOffset = nextOffset;
             curChangeType = nextChangeType;
             curTetrisType = nextTetrisType;
@@ -389,6 +415,7 @@ namespace Tetris
             if (IsAiControl)
             {
                 CalcAICtrl();
+                nextTetrisType = -1;
             }
         }
 
@@ -1155,9 +1182,11 @@ namespace Tetris
                 g.Mutate(x => x.Fill(showBrush, rect));
         }
 
+        Font font = SystemFonts.CreateFont(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Arial" : "DejaVu Sans", 10);
+
         void DrawScore(Image<Rgba32> g)
         {
-            g.Mutate(x => x.DrawText($"Score得分：{GameScore}", SystemFonts.CreateFont("DejaVu Sans", 10), new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
+            g.Mutate(x => x.DrawText($"Score得分：{GameScore}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
     }
 }
