@@ -76,7 +76,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="u8g2_font_custom.h" />
+    <ClInclude Include="dic.h" />
   </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
@@ -88,7 +88,7 @@
     <ValidateArchitecture>false</ValidateArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)..\Nano;$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\variants\\eightanaloginputs;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\avr\include</IncludePath>
+    <IncludePath>$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\variants\\eightanaloginputs;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\avr\include</IncludePath>
     <RemoteCCompileToolExe>$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\tools\\avr\bin\avr-g++</RemoteCCompileToolExe>
     <RemoteCppCompileToolExe>$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\tools\\avr\bin\avr-g++</RemoteCppCompileToolExe>
     <ValidateArchitecture>false</ValidateArchitecture>
@@ -109,7 +109,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\Nano;$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\variants\\eightanaloginputs;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\avr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\cores\\arduino;$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\arduino\\avr\\variants\\eightanaloginputs;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\lib\gcc\avr\7.3.0\include-fixed;$(ProjectDir)..\..\..\..\tools\arduino\hardware\tools\avr\avr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <GccToolChain>$(ProjectDir)..\..\..\..\\Tools\\Arduino\\hardware\\tools\\avr\bin\avr-g++</GccToolChain>
       <CppLanguageStandard>gnu++11</CppLanguageStandard>
       <CLanguageStandard>gnu11</CLanguageStandard>

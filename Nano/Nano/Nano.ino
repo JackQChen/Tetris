@@ -1,39 +1,41 @@
-const int ROWS = 4; // ĞĞÊı
-const int COLS = 4; // ÁĞÊı
-bool pixelData[ROWS][COLS]; // ÓÃÓÚ´æ´¢ÏñËØµãÁÁÃğ×´Ì¬
+#include "dic.h"
+const int ROWS = 4; // è¡Œæ•°
+const int COLS = 4; // åˆ—æ•°
+bool pixelData[ROWS][COLS]; // ç”¨äºå­˜å‚¨åƒç´ ç‚¹äº®ç­çŠ¶æ€
 
-// ÅäÖÃ
-const int analogPin = A0;        // Ä£ÄâĞÅºÅÊäÈëÒı½Å
-const int thresholdHigh = 3 * 1024 / 5, thresholdLow = 1 * 1024 / 5; //ãĞÖµ
-const int debounceTime = 3;     // ·À¶¶Ê±¼ä£¨µ¥Î»£ºms£©
+// é…ç½®
+const int analogPin = A0;        // æ¨¡æ‹Ÿä¿¡å·è¾“å…¥å¼•è„š
+const int thresholdHigh = 3 * 1024 / 5, thresholdLow = 1 * 1024 / 5; //é˜ˆå€¼
+const int debounceTime = 3;     // é˜²æŠ–æ—¶é—´ï¼ˆå•ä½ï¼šmsï¼‰
 
-// È«¾Ö±äÁ¿
-unsigned long lastTriggerTime = 0; // ÉÏ´Î´¥·¢µÄÊ±¼ä
-unsigned long lastReportTime = 0;  // ÉÏ´Î±¨¸æµÄÊ±¼ä
+// å…¨å±€å˜é‡
+unsigned long lastTriggerTime = 0; // ä¸Šæ¬¡è§¦å‘çš„æ—¶é—´
+unsigned long lastReportTime = 0;  // ä¸Šæ¬¡æŠ¥å‘Šçš„æ—¶é—´
+unsigned int lastReportValue = 0; // ä¸Šæ¬¡æŠ¥å‘Šçš„å€¼
 
 void setup() {
-	ADCSRA = (ADCSRA & 0xF8) | 0x02; // ÉèÖÃ·ÖÆµÆ÷
-	Serial.begin(9600); // ³õÊ¼»¯´®¿ÚÍ¨ĞÅ
+	ADCSRA = (ADCSRA & 0xF8) | 0x02; // è®¾ç½®åˆ†é¢‘å™¨
+	Serial.begin(9600); // åˆå§‹åŒ–ä¸²å£é€šä¿¡
 }
 
 void loop() {
-	// »ñÈ¡µ±Ç°Ê±¼ä
+	// è·å–å½“å‰æ—¶é—´
 	unsigned long currentTime = millis();
 
-	// ÅĞ¶ÏÊÇ·ñ³¬¹ı´¥·¢ãĞÖµ
+	// åˆ¤æ–­æ˜¯å¦è¶…è¿‡è§¦å‘é˜ˆå€¼
 	if (analogRead(analogPin) > thresholdHigh) {
-		// ÅĞ¶ÏÊÇ·ñ³¬¹ı·À¶¶Ê±¼ä
+		// åˆ¤æ–­æ˜¯å¦è¶…è¿‡é˜²æŠ–æ—¶é—´
 		if (currentTime - lastTriggerTime > debounceTime) {
-			lastTriggerTime = currentTime; // ¸üĞÂ´¥·¢Ê±¼ä
+			lastTriggerTime = currentTime; // æ›´æ–°è§¦å‘æ—¶é—´
 			updatePixelData();
 		}
 	}
 
-	// ·¢ËÍÊı¾İ
+	// å‘é€æ•°æ®
 	if (currentTime - lastReportTime >= 50) {
-		lastReportTime = currentTime; // ¸üĞÂ±¨¸æÊ±¼ä
-		// ·¢ËÍÕû¸ö¾ØÕó
-		uint8_t packedData[3] = { 0 };
+		lastReportTime = currentTime; // æ›´æ–°æŠ¥å‘Šæ—¶é—´
+		// è®¡ç®—æ•´ä¸ªçŸ©é˜µ
+		uint8_t packedData[2] = { 0 };
 		for (int row = 0; row < ROWS; row++) {
 			for (int col = 0; col < COLS; col++) {
 				if (pixelData[row][col]) {
@@ -42,19 +44,29 @@ void loop() {
 				}
 			}
 		}
-		// ¼ÆËãĞ£ÑéºÍ
-		packedData[2] = packedData[0] ^ packedData[1];
-
-		for (int i = 0;i < 3;i++)
-			Serial.write(packedData[i]);
-		Serial.write(0xff); // ±ê¼Ç´«Êä½áÊø
+		// åŒ¹é…æ•°æ®
+		int value = findValue(packedData);
+		if (value != 0 && lastReportValue != value)
+			Serial.write(value);
+		lastReportValue = value;
 	}
 
-	// ÉÔ×÷ÑÓÊ±£¬±ÜÃâ¹ıÓÚÆµ·±²ÉÑù
+	// ç¨ä½œå»¶æ—¶ï¼Œé¿å…è¿‡äºé¢‘ç¹é‡‡æ ·
 	delay(1);
 }
 
-// ¸üĞÂÏñËØ¾ØÕóÖĞÖ¸¶¨ÁĞµÄÊı¾İ
+int findValue(const byte packedData[2]) {
+	// éå†å­—å…¸
+	for (int i = 0; i < sizeof(dic) / sizeof(dic[0]); i++) {
+		// æ¯”è¾ƒå‰ä¸¤ä¸ªå­—èŠ‚æ˜¯å¦åŒ¹é…
+		if (dic[i][0] == packedData[0] && dic[i][1] == packedData[1]) {
+			return dic[i][2]; // è¿”å›ç¬¬ä¸‰ä¸ªå­—èŠ‚ä½œä¸º value
+		}
+	}
+	return 0; // æœªæ‰¾åˆ°æ—¶è¿”å› 0 è¡¨ç¤ºæ— æ•ˆå€¼
+}
+
+// æ›´æ–°åƒç´ çŸ©é˜µä¸­æŒ‡å®šåˆ—çš„æ•°æ®
 void updatePixelData()
 {
 	for (int i = 0; i < 4; i++) {

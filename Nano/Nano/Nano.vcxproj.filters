@@ -10,7 +10,7 @@
     <ClCompile Include="Nano.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="u8g2_font_custom.h">
+    <ClInclude Include="dic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
