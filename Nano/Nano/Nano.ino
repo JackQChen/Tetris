@@ -10,6 +10,7 @@ const int debounceTime = 3;     // 防抖时间（单位：ms）
 
 // 全局变量
 unsigned long lastTriggerTime = 0; // 上次触发的时间
+unsigned long lastDetectTime = 0;  // 上次检测的时间
 unsigned long lastReportTime = 0;  // 上次报告的时间
 unsigned int lastReportValue = 0; // 上次报告的值
 
@@ -31,9 +32,9 @@ void loop() {
 		}
 	}
 
-	// 发送数据
-	if (currentTime - lastReportTime >= 50) {
-		lastReportTime = currentTime; // 更新报告时间
+	// 检测数据
+	if (currentTime - lastDetectTime >= 50) {
+		lastDetectTime = currentTime; // 更新检测时间
 		// 计算整个矩阵
 		uint8_t packedData[2] = { 0 };
 		for (int row = 0; row < ROWS; row++) {
@@ -47,7 +48,13 @@ void loop() {
 		// 匹配数据
 		int value = findValue(packedData);
 		if (value != 0 && lastReportValue != value)
-			Serial.write(value);
+		{
+			if (currentTime - lastReportTime >= 500)
+			{
+				lastReportTime = currentTime;
+				Serial.write(value);
+			}
+		}
 		lastReportValue = value;
 	}
 
