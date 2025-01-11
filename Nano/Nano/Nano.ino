@@ -64,14 +64,48 @@ void loop() {
 
 	// 检查串口是否接收到数据
 	if (Serial.available() > 0) {
-		int data = Serial.read(); // 读取数据
-		digitalWrite(data, HIGH);
-		delay(50);
-		digitalWrite(data, LOW);
+		byte value = Serial.read(); // 读取数据
+
+		// 解析数据
+		int change = (value >> 4) & 0x0F; // 提取高4位
+		int move = (value & 0x0F) - 8;    // 提取低4位，减去偏移量
+
+		// 同时处理旋转和移动
+		executeSteps(change, move);
 	}
 
 	// 稍作延时，避免过于频繁采样
 	delay(1);
+}
+
+// 同时执行旋转和移动
+void executeSteps(int change, int move) {
+	int stepsRotation = change;        // 旋转次数
+	int stepsMove = abs(move);         // 移动次数
+	int movePin = (move < 0) ? 2 : 4; // 移动方向 (左或右)
+
+	while (stepsRotation > 0 || stepsMove > 0) {
+		// 如果还有旋转操作，执行一次
+		if (stepsRotation > 0)
+			digitalWrite(5, HIGH);
+
+		// 如果还有移动操作，执行一次
+		if (stepsMove > 0)
+			digitalWrite(movePin, HIGH);
+
+		// 按键保持时间
+		delay(50);
+
+		// 释放按键
+		if (stepsRotation > 0) {
+			digitalWrite(5, LOW);
+			stepsRotation--;
+		}
+		if (stepsMove > 0) {
+			digitalWrite(movePin, LOW);
+			stepsMove--;
+		}
+	}
 }
 
 int findValue(const byte packedData[2]) {

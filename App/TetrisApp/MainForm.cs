@@ -79,7 +79,7 @@ namespace TetrisApp
         SceneOffset currentOffset = null;
         //下落速度
         const int dropSpeed = 5;
-        const int timerInterval = 200;
+        const int timerInterval = 10;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -938,41 +938,18 @@ namespace TetrisApp
 
         void RunDeviceSteps(int moveX, int change)
         {
-            Console.WriteLine($"MoveX={moveX}, Change={change}");
+            Console.WriteLine($"TetrisType={nextTetrisType}, MoveX={moveX}, Change={change}");
 
             var x = moveX;
             var type = nextTetrisType;
-            if (type == 0)
+            if (type == 0 && (change == nextChangeType))
                 x--;
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
 
-            var c = change;
-
-            while (c > 0)
-            {
-                serialPort.Write(BitConverter.GetBytes(5), 0, 4);
-                c--;
-            }
-
-            if (x > 0)
-            {
-                while (x > 0)
-                {
-                    serialPort.Write(BitConverter.GetBytes(4), 0, 4);
-                    x--;
-                }
-            }
-            else if (x < 0)
-            {
-                while (x < 0)
-                {
-                    serialPort.Write(BitConverter.GetBytes(2), 0, 4);
-                    x++;
-                }
-            }
+            var data = new byte[] { (byte)((change << 4) | (x + 8)) };
+            serialPort.Write(data, 0, 1);
         }
-
 
         //正在下落
         void OnDropping()
