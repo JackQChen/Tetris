@@ -75,11 +75,11 @@ namespace TetrisApp
         int kPreBornY = 0;
         //预览区的offset
         SceneOffset nextOffset = null;
-        //当前的offwet
+        //当前的offset
         SceneOffset currentOffset = null;
         //下落速度
         const int dropSpeed = 5;
-        const int timerInterval = 10;
+        const int timerInterval = 200;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -109,6 +109,8 @@ namespace TetrisApp
 
         SerialPort serialPort;
         bool isWindows = false;
+
+        DateTime dtLastReceived = DateTime.MinValue;
 
         public MainForm()
         {
@@ -153,8 +155,6 @@ namespace TetrisApp
             Restart();
         }
 
-        DateTime dtLastReceived = DateTime.MinValue;
-
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             var data = serialPort.ReadByte();
@@ -167,7 +167,7 @@ namespace TetrisApp
             nextTetrisType = data / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
             nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-            Console.WriteLine($"TetrisType={nextTetrisType}, ChangeType={nextChangeType}");
+            Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
         }
 
         void InitGrids()
@@ -339,6 +339,9 @@ namespace TetrisApp
                 case Keys.K:
                     IsAiControl = !IsAiControl;
                     //CalcAICtrl();
+                    break;
+                case Keys.Space:
+                    UITimer.Enabled = !UITimer.Enabled;
                     break;
             }
         }
@@ -648,8 +651,9 @@ namespace TetrisApp
             {
                 g.show = true;
             }
-            RunAISteps(moveX, R_Change);
 
+            RunDeviceSteps(moveX, R_Change);
+            RunAISteps(moveX, R_Change);
         }
 
         //参数1.高度
@@ -907,10 +911,8 @@ namespace TetrisApp
 
         void RunAISteps(int moveX, int change)
         {
-            Console.WriteLine($"MoveX={moveX}, Change={change}");
             while (change > 0)
             {
-                serialPort.Write(BitConverter.GetBytes(5), 0, 4);
                 RunGridMove(Direction.UP);
                 change--;
             }
@@ -919,7 +921,6 @@ namespace TetrisApp
             {
                 while (moveX > 0)
                 {
-                    serialPort.Write(BitConverter.GetBytes(4), 0, 4);
                     RunGridMove(Direction.RIGHT);
                     moveX--;
                 }
@@ -928,12 +929,48 @@ namespace TetrisApp
             {
                 while (moveX < 0)
                 {
-                    serialPort.Write(BitConverter.GetBytes(2), 0, 4);
                     RunGridMove(Direction.LEFT);
                     moveX++;
                 }
             }
             gameState = GameState.FastDrop;
+        }
+
+        void RunDeviceSteps(int moveX, int change)
+        {
+            Console.WriteLine($"MoveX={moveX}, Change={change}");
+
+            var x = moveX;
+            var type = nextTetrisType;
+            if (type == 0)
+                x--;
+            else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
+                x++;
+
+            var c = change;
+
+            while (c > 0)
+            {
+                serialPort.Write(BitConverter.GetBytes(5), 0, 4);
+                c--;
+            }
+
+            if (x > 0)
+            {
+                while (x > 0)
+                {
+                    serialPort.Write(BitConverter.GetBytes(4), 0, 4);
+                    x--;
+                }
+            }
+            else if (x < 0)
+            {
+                while (x < 0)
+                {
+                    serialPort.Write(BitConverter.GetBytes(2), 0, 4);
+                    x++;
+                }
+            }
         }
 
 
