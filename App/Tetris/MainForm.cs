@@ -84,8 +84,8 @@ namespace Tetris
         //当前的offwet
         SceneOffset currentOffset = null;
         //下落速度
-        const int dropSpeed = 10;
-        const int timerInterval = 1;
+        const int dropSpeed = 100;
+        const int timerInterval = 100;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -115,8 +115,14 @@ namespace Tetris
         Timer UITimer;
         SerialPort serialPort;
 
+        static bool isWindows = false;
+        Font font;
+
         public MainForm()
         {
+            isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
+
             InitForm();
             InitGrids();
             InitTetrisType();
@@ -136,17 +142,28 @@ namespace Tetris
             this.UITimer.Elapsed += OnTimer;
 
             // 初始化串口
-            serialPort = new SerialPort("/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            //serialPort.DataReceived += OnDataReceived;
             serialPort.DtrEnable = true;
-            serialPort.DataReceived += OnDataReceived;
             serialPort.Open();
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    if (serialPort.BytesToRead > 0)
+                        OnDataReceived(null, serialPort.ReadByte());
+                    else
+                        Thread.Sleep(1);
+                }
+            });
         }
 
         DateTime dtLastReceived = DateTime.MinValue;
 
-        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void OnDataReceived(object sender, int data /*SerialDataReceivedEventArgs e*/)
         {
-            var data = serialPort.ReadByte();
+            Console.WriteLine("OnDataReceived");
+            //var data = serialPort.ReadByte();
             if (data == -1)
                 return;
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
@@ -407,7 +424,7 @@ namespace Tetris
                 g.show = true;
             }
             //生成预览区的offset
-            GenerateNextTetris();
+            //GenerateNextTetris();
             //计算预览区网格
             CalcPreGrids();
             gameState = GameState.NormalDrop;
@@ -906,6 +923,7 @@ namespace Tetris
             Console.WriteLine($"MoveX={moveX}, Change={change}");
             while (change > 0)
             {
+                serialPort.Write(BitConverter.GetBytes(5), 0, 4);
                 RunGridMove(Direction.UP);
                 change--;
             }
@@ -914,6 +932,7 @@ namespace Tetris
             {
                 while (moveX > 0)
                 {
+                    serialPort.Write(BitConverter.GetBytes(4), 0, 4);
                     RunGridMove(Direction.RIGHT);
                     moveX--;
                 }
@@ -922,6 +941,7 @@ namespace Tetris
             {
                 while (moveX < 0)
                 {
+                    serialPort.Write(BitConverter.GetBytes(2), 0, 4);
                     RunGridMove(Direction.LEFT);
                     moveX++;
                 }
@@ -1181,8 +1201,6 @@ namespace Tetris
             foreach (var rect in rects)
                 g.Mutate(x => x.Fill(showBrush, rect));
         }
-
-        Font font = SystemFonts.CreateFont(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Arial" : "DejaVu Sans", 10);
 
         void DrawScore(Image<Rgba32> g)
         {

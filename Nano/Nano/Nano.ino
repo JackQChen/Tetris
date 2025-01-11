@@ -17,6 +17,10 @@ unsigned int lastReportValue = 0; // 上次报告的值
 void setup() {
 	ADCSRA = (ADCSRA & 0xF8) | 0x02; // 设置分频器
 	Serial.begin(9600); // 初始化串口通信
+	pinMode(2, OUTPUT);
+	pinMode(3, OUTPUT);
+	pinMode(4, OUTPUT);
+	pinMode(5, OUTPUT);
 }
 
 void loop() {
@@ -56,6 +60,14 @@ void loop() {
 			}
 		}
 		lastReportValue = value;
+	}
+
+	// 检查串口是否接收到数据
+	if (Serial.available() > 0) {
+		int data = Serial.read(); // 读取数据
+		digitalWrite(data, HIGH);
+		delay(50);
+		digitalWrite(data, LOW);
 	}
 
 	// 稍作延时，避免过于频繁采样
