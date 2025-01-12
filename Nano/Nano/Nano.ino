@@ -73,17 +73,17 @@ void loop() {
 		for (int i = 0;i < change;i++)
 		{
 			digitalWrite(5, HIGH);
-			delay(60);
+			delay(80);
 			digitalWrite(5, LOW);
-			delay(30);
+			delay(40);
 		}
 		int pin = dir == 0 ? 2 : 4;
 		for (int i = 0;i < move;i++)
 		{
 			digitalWrite(pin, HIGH);
-			delay(60);
+			delay(80);
 			digitalWrite(pin, LOW);
-			delay(30);
+			delay(40);
 		}
 	}
 
