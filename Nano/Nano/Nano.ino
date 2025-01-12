@@ -64,11 +64,27 @@ void loop() {
 
 	// 检查串口是否接收到数据
 	if (Serial.available() > 0) {
-		byte data = Serial.read(); // 读取数据
-		digitalWrite(data, HIGH);
-		delay(50);
-		digitalWrite(data, LOW);
-		delay(20);
+		byte data = Serial.read();
+		// 读取数据
+		int change = (data >> 4) & 0b1111;
+		int dir = (data >> 3) & 0b1;
+		int move = data & 0b111;
+
+		for (int i = 0;i < change;i++)
+		{
+			digitalWrite(5, HIGH);
+			delay(60);
+			digitalWrite(5, LOW);
+			delay(30);
+		}
+		int pin = dir == 0 ? 2 : 4;
+		for (int i = 0;i < move;i++)
+		{
+			digitalWrite(pin, HIGH);
+			delay(60);
+			digitalWrite(pin, LOW);
+			delay(30);
+		}
 	}
 
 	// 稍作延时，避免过于频繁采样

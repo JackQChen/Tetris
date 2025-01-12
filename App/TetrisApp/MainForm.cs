@@ -947,30 +947,7 @@ namespace TetrisApp
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
 
-            var c = change;
-
-            while (c > 0)
-            {
-                serialPort.Write(new byte[] { 5 }, 0, 1);
-                c--;
-            }
-
-            if (x > 0)
-            {
-                while (x > 0)
-                {
-                    serialPort.Write(new byte[] { 4 }, 0, 1);
-                    x--;
-                }
-            }
-            else if (x < 0)
-            {
-                while (x < 0)
-                {
-                    serialPort.Write(new byte[] { 2 }, 0, 1);
-                    x++;
-                }
-            }
+            serialPort.Write(new byte[] { (byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)) }, 0, 1);
         }
 
         //正在下落
