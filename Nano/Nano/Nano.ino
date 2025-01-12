@@ -73,52 +73,22 @@ void loop() {
 		for (int i = 0;i < change;i++)
 		{
 			digitalWrite(5, HIGH);
-			delay(80);
+			delay(70);
 			digitalWrite(5, LOW);
-			delay(40);
+			delay(30);
 		}
 		int pin = dir == 0 ? 2 : 4;
 		for (int i = 0;i < move;i++)
 		{
 			digitalWrite(pin, HIGH);
-			delay(80);
+			delay(70);
 			digitalWrite(pin, LOW);
-			delay(40);
+			delay(30);
 		}
 	}
 
 	// 稍作延时，避免过于频繁采样
 	delay(1);
-}
-
-// 同时执行旋转和移动
-void executeSteps(int change, int move) {
-	int stepsRotation = change;        // 旋转次数
-	int stepsMove = abs(move);         // 移动次数
-	int movePin = (move < 0) ? 2 : 4; // 移动方向 (左或右)
-
-	while (stepsRotation > 0 || stepsMove > 0) {
-		// 如果还有旋转操作，执行一次
-		if (stepsRotation > 0)
-			digitalWrite(5, HIGH);
-
-		// 如果还有移动操作，执行一次
-		if (stepsMove > 0)
-			digitalWrite(movePin, HIGH);
-
-		// 按键保持时间
-		delay(50);
-
-		// 释放按键
-		if (stepsRotation > 0) {
-			digitalWrite(5, LOW);
-			stepsRotation--;
-		}
-		if (stepsMove > 0) {
-			digitalWrite(movePin, LOW);
-			stepsMove--;
-		}
-	}
 }
 
 int findValue(const byte packedData[2]) {
