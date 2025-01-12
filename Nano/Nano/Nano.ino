@@ -64,14 +64,11 @@ void loop() {
 
 	// 检查串口是否接收到数据
 	if (Serial.available() > 0) {
-		byte value = Serial.read(); // 读取数据
-
-		// 解析数据
-		int change = (value >> 4) & 0x0F; // 提取高4位
-		int move = (value & 0x0F) - 8;    // 提取低4位，减去偏移量
-
-		// 同时处理旋转和移动
-		executeSteps(change, move);
+		byte data = Serial.read(); // 读取数据
+		digitalWrite(data, HIGH);
+		delay(50);
+		digitalWrite(data, LOW);
+		delay(20);
 	}
 
 	// 稍作延时，避免过于频繁采样

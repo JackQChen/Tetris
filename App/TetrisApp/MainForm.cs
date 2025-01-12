@@ -947,8 +947,30 @@ namespace TetrisApp
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
 
-            var data = new byte[] { (byte)((change << 4) | (x + 8)) };
-            serialPort.Write(data, 0, 1);
+            var c = change;
+
+            while (c > 0)
+            {
+                serialPort.Write(new byte[] { 5 }, 0, 1);
+                c--;
+            }
+
+            if (x > 0)
+            {
+                while (x > 0)
+                {
+                    serialPort.Write(new byte[] { 4 }, 0, 1);
+                    x--;
+                }
+            }
+            else if (x < 0)
+            {
+                while (x < 0)
+                {
+                    serialPort.Write(new byte[] { 2 }, 0, 1);
+                    x++;
+                }
+            }
         }
 
         //正在下落
@@ -1195,7 +1217,7 @@ namespace TetrisApp
 
         void DrawScore(Graphics g)
         {
-            g.DrawString(string.Format("得分：{0}", GameScore), new Font("Arial", 10), new SolidBrush(Color.AliceBlue), kScorePoint.X, kScorePoint.Y);
+            g.DrawString(string.Format("得分：{0}", GameScore), new Font("Arial", 10), new SolidBrush(Color.Black), kScorePoint.X, kScorePoint.Y);
         }
     }
 }
