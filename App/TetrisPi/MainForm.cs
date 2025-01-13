@@ -149,9 +149,9 @@ namespace TetrisApp
 
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            var data = serialPort.ReadByte();
-            if (data == -1)
+            if (serialPort.BytesToRead == 0)
                 return;
+            var data = serialPort.ReadByte();
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
                 return;
             dtLastReceived = DateTime.Now;
