@@ -35,6 +35,12 @@ nano ~/.bashrc
 export DOTNET_ROOT=/opt/dotnet
 export PATH=$PATH:/opt/dotnet
 
+#操作screen
+sudo apt-get install screen
+screen -S 1
+screen -r 1
+exit
+
 #安装远程桌面
 sudo apt-get install xrdp
 
