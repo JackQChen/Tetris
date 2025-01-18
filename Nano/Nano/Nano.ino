@@ -12,7 +12,8 @@ const int debounceTime = 3;     // 防抖时间（单位：ms）
 unsigned long lastTriggerTime = 0; // 上次触发的时间
 unsigned long lastDetectTime = 0;  // 上次检测的时间
 unsigned long lastReportTime = 0;  // 上次报告的时间
-unsigned int lastReportValue = 0; // 上次报告的值
+
+int lastReportValue = 0; // 上次报告的值
 
 void setup() {
 	ADCSRA = (ADCSRA & 0xF8) | 0x02; // 设置分频器
@@ -51,7 +52,7 @@ void loop() {
 		}
 		// 匹配数据
 		int value = findValue(packedData);
-		if (value != 0 && lastReportValue != value)
+		if (value != -1 && lastReportValue != value)
 		{
 			if (currentTime - lastReportTime >= 500)
 			{
@@ -99,7 +100,7 @@ int findValue(const byte packedData[2]) {
 			return dic[i][2]; // 返回第三个字节作为 value
 		}
 	}
-	return 0; // 未找到时返回 0 表示无效值
+	return -1; // 未找到时返回 -1 表示无效值
 }
 
 // 更新像素矩阵中指定列的数据
