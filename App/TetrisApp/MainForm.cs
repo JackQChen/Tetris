@@ -940,7 +940,7 @@ namespace TetrisApp
         {
             var x = moveX;
             var type = nextTetrisType;
-            if (type == 0)
+            if (type == 0 && (change == nextChangeType))
                 x--;
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
