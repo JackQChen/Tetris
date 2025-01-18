@@ -139,7 +139,18 @@ namespace TetrisApp
             this.UITimer.Enabled = true;
             this.UITimer.Interval = timerInterval;
             this.UITimer.Tick += OnTimer;
-
+            Task.Factory.StartNew(() =>
+           {
+               while (true)
+               {
+                   if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 10))
+                   {
+                       serialPort.Write(new byte[] { 0xff }, 0, 1);
+                       Restart();
+                   }
+                   Thread.Sleep(10000);
+               }
+           }, TaskCreationOptions.LongRunning);
         }
 
         protected override void OnLoad(EventArgs e)

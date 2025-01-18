@@ -12,13 +12,8 @@ const int debounceTime = 3;     // 防抖时间（单位：ms）
 unsigned long lastTriggerTime = 0; // 上次触发的时间
 unsigned long lastDetectTime = 0;  // 上次检测的时间
 unsigned long lastReportTime = 0;  // 上次报告的时间
-unsigned long lastPressTime = 0;   // 上次按键的时间
 
 int lastReportValue = 0; // 上次报告的值
-int step = 0; // 按键状态
-
-int keyIndex = -1, KeyCount = 0;
-int keyArray[10];
 
 void setup() {
 	ADCSRA = (ADCSRA & 0xF8) | 0x02; // 设置分频器
@@ -68,51 +63,37 @@ void loop() {
 		lastReportValue = value;
 	}
 
-	if (step == 0)
-	{
-		// 检查串口是否接收到数据
-		if (Serial.available() > 0) {
-			// 读取数据
-			byte data = Serial.read();
-			int change = (data >> 4) & 0b1111;
-			int dir = (data >> 3) & 0b1;
-			int move = data & 0b111;
-
-			keyIndex = 0;
-			KeyCount = change + move;
-			for (int i = 0;i < change;i++)
-			{
-				keyArray[keyIndex] = 5;
-				keyIndex++;
-			}
-			int pin = dir == 0 ? 2 : 4;
-			for (int i = 0;i < move;i++)
-			{
-				keyArray[keyIndex] = pin;
-				keyIndex++;
-			}
-			keyIndex = 0;
-		}
-
-		if (keyIndex >= 0)
+	// 检查串口是否接收到数据
+	if (Serial.available() > 0) {
+		byte data = Serial.read();
+		if (data == 0xff)
 		{
-			digitalWrite(keyArray[keyIndex], HIGH);
-			lastPressTime = currentTime;  // 记录当前时间
-			step = 1;
+			digitalWrite(5, HIGH);
+			delay(80);
+			digitalWrite(5, LOW);
+			delay(80);
+			return;
 		}
-	}
+		// 读取数据
+		int change = (data >> 4) & 0b1111;
+		int dir = (data >> 3) & 0b1;
+		int move = data & 0b111;
 
-	if (step == 1 && (currentTime - lastPressTime >= 100)) {
-		digitalWrite(keyArray[keyIndex], LOW);
-		lastPressTime = currentTime; // 记录当前时间
-		step = 2;                    // 进入下一步骤
-	}
-
-	if (step == 2 && (currentTime - lastPressTime >= 100)) {
-		step = 0;                    // 重置状态，处理新数据
-		keyIndex++;
-		if (keyIndex == KeyCount)
-			keyIndex = -1;
+		for (int i = 0;i < change;i++)
+		{
+			digitalWrite(4, HIGH);
+			delay(80);
+			digitalWrite(4, LOW);
+			delay(80);
+		}
+		int pin = dir == 0 ? 2 : 3;
+		for (int i = 0;i < move;i++)
+		{
+			digitalWrite(pin, HIGH);
+			delay(80);
+			digitalWrite(pin, LOW);
+			delay(80);
+		}
 	}
 
 	// 稍作延时，避免过于频繁采样
