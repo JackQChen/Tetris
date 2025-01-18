@@ -938,8 +938,6 @@ namespace TetrisApp
 
         void RunDeviceSteps(int moveX, int change)
         {
-            Console.WriteLine($"TetrisType={nextTetrisType}, MoveX={moveX}, Change={change}");
-
             var x = moveX;
             var type = nextTetrisType;
             if (type == 0)
@@ -948,6 +946,8 @@ namespace TetrisApp
                 x++;
 
             serialPort.Write(new byte[] { (byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)) }, 0, 1);
+
+            Console.WriteLine($"MoveX={moveX}, Change={change}");
         }
 
         //正在下落
