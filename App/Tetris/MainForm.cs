@@ -145,10 +145,10 @@ namespace Tetris
                     if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 10))
                     {
                         var imageData = Paint();
-                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Records");
+                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
                         if (!Directory.Exists(dir))
                             Directory.CreateDirectory(dir);
-                        var path = Path.Combine(dir, DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss.png"));
+                        var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
                         File.WriteAllBytes(path, imageData);
                         serialPort.Write(new byte[] { 0xff }, 0, 1);
                         Restart();
