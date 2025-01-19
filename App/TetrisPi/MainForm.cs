@@ -129,7 +129,6 @@ namespace TetrisApp
             this.UITimer = new Timer
             {
                 Enabled = true,
-                //AutoReset = false,
                 Interval = timerInterval,
             };
             this.UITimer.Elapsed += OnTimer;

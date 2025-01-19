@@ -81,11 +81,11 @@ namespace Tetris
         int kPreBornY = 0;
         //预览区的offset
         SceneOffset nextOffset = null;
-        //当前的offwet
+        //当前的offset
         SceneOffset currentOffset = null;
         //下落速度
-        const int dropSpeed = 100;
-        const int timerInterval = 100;
+        const int dropSpeed = 5;
+        const int timerInterval = 10;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -97,7 +97,7 @@ namespace Tetris
         int GameScore = 0;
 
         //是否使用AI
-        bool IsAiControl { get; set; }
+        bool IsAiControl { get; set; } = true;
 
         enum GameState
         {
@@ -112,22 +112,20 @@ namespace Tetris
 
         //当前游戏状态
         GameState gameState = GameState.NextRound;
+
         Timer UITimer;
         SerialPort serialPort;
+        bool isWindows = false;
 
-        static bool isWindows = false;
+        DateTime dtLastReceived = DateTime.MinValue;
+
         Font font;
 
         public MainForm()
         {
-            isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
-
             InitForm();
             InitGrids();
             InitTetrisType();
-            Restart();
-            IsAiControl = true;
         }
 
         void InitForm()
@@ -136,41 +134,56 @@ namespace Tetris
             this.UITimer = new Timer
             {
                 Enabled = true,
-                AutoReset = false,
-                Interval = timerInterval,
+                Interval = timerInterval
             };
             this.UITimer.Elapsed += OnTimer;
-
-            // 初始化串口
-            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
-            //serialPort.DataReceived += OnDataReceived;
-            serialPort.DtrEnable = true;
-            serialPort.Open();
-            Task.Run(() =>
+            // 自动重置
+            Task.Factory.StartNew(() =>
             {
                 while (true)
                 {
-                    if (serialPort.BytesToRead > 0)
-                        OnDataReceived(null, serialPort.ReadByte());
-                    else
-                        Thread.Sleep(1);
+                    if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 10))
+                    {
+                        var imageData = Paint();
+                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Records");
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+                        var path = Path.Combine(dir, DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss.png"));
+                        File.WriteAllBytes(path, imageData);
+                        serialPort.Write(new byte[] { 0xff }, 0, 1);
+                        Restart();
+                    }
+                    Thread.Sleep(10000);
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
         }
 
-        DateTime dtLastReceived = DateTime.MinValue;
-
-        private void OnDataReceived(object sender, int data /*SerialDataReceivedEventArgs e*/)
+        public void OnLoad(EventArgs e)
         {
-            Console.WriteLine("OnDataReceived");
-            //var data = serialPort.ReadByte();
-            if (data == -1)
+            isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
+            // 初始化串口
+            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            serialPort.DataReceived += OnDataReceived;
+            serialPort.DtrEnable = true;
+            serialPort.Open();
+
+            Restart();
+        }
+
+        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            if (serialPort.BytesToRead == 0)
                 return;
+            var data = serialPort.ReadByte();
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
                 return;
             dtLastReceived = DateTime.Now;
             nextChangeType = data % 10;
             nextTetrisType = data / 10;
+            nextChangeType = nextChangeType % changeNum[nextTetrisType];
+            nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
+            Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
         }
 
         void InitGrids()
@@ -268,17 +281,6 @@ namespace Tetris
                 return null;
             }
             return allGrids[x, y];
-        }
-
-        void GenerateNextTetris()
-        {
-            //nextTetrisType = randGen.Next(7);//选择类型
-            //nextChangeType = randGen.Next(4);//选择变体 
-            if (nextTetrisType == -1)
-                return;
-            Console.WriteLine($"TetrisType={nextTetrisType}, ChangeType={nextChangeType}");
-            nextChangeType = nextChangeType % changeNum[nextTetrisType];
-            nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
         }
 
         //在某个坐标位置生成掉落方块
@@ -385,14 +387,9 @@ namespace Tetris
                     break;
                 case GameState.GameOver:
                     this.UITimer.Stop();
-                    Console.WriteLine($"Game Over, 你的得分是{GameScore}，是否重来？");
-                    //Restart();
+                    Console.WriteLine($"游戏结束,{string.Format("你的得分是{0}，是否重来？", GameScore)}");
                     break;
             }
-
-            //重绘整个窗口
-            Paint();
-            this.UITimer.Start();
         }
 
         //一轮下落的开始
@@ -401,10 +398,6 @@ namespace Tetris
             currentRunGridX = kRunGridBirthX;
             currentRunGridY = kRunGridBirthY;
 
-            if (nextOffset == null)
-            {
-                GenerateNextTetris();
-            }
             if (nextTetrisType == -1)
                 return;
             currentOffset = nextOffset;
@@ -660,8 +653,9 @@ namespace Tetris
             {
                 g.show = true;
             }
-            RunAISteps(moveX, R_Change);
 
+            RunDeviceSteps(moveX, R_Change);
+            RunAISteps(moveX, R_Change);
         }
 
         //参数1.高度
@@ -826,7 +820,6 @@ namespace Tetris
                         }
                         lastY = y;
                     }
-
                 });
                 for (int y = 0; y < kSceneHeight; y++)
                 {
@@ -920,10 +913,8 @@ namespace Tetris
 
         void RunAISteps(int moveX, int change)
         {
-            Console.WriteLine($"MoveX={moveX}, Change={change}");
             while (change > 0)
             {
-                serialPort.Write(BitConverter.GetBytes(5), 0, 4);
                 RunGridMove(Direction.UP);
                 change--;
             }
@@ -932,7 +923,6 @@ namespace Tetris
             {
                 while (moveX > 0)
                 {
-                    serialPort.Write(BitConverter.GetBytes(4), 0, 4);
                     RunGridMove(Direction.RIGHT);
                     moveX--;
                 }
@@ -941,7 +931,6 @@ namespace Tetris
             {
                 while (moveX < 0)
                 {
-                    serialPort.Write(BitConverter.GetBytes(2), 0, 4);
                     RunGridMove(Direction.LEFT);
                     moveX++;
                 }
@@ -949,6 +938,19 @@ namespace Tetris
             gameState = GameState.FastDrop;
         }
 
+        void RunDeviceSteps(int moveX, int change)
+        {
+            var x = moveX;
+            var type = nextTetrisType;
+            if (type == 0 && (change == nextChangeType))
+                x--;
+            else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
+                x++;
+
+            serialPort.Write(new byte[] { (byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)) }, 0, 1);
+
+            Console.WriteLine($"MoveX={x}, Change={change}");
+        }
 
         //正在下落
         void OnDropping()
@@ -1204,7 +1206,7 @@ namespace Tetris
 
         void DrawScore(Image<Rgba32> g)
         {
-            g.Mutate(x => x.DrawText($"Score得分：{GameScore}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
+            g.Mutate(x => x.DrawText($"Score: {GameScore}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
     }
 }

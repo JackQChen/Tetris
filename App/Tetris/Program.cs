@@ -8,6 +8,7 @@ namespace Tetris
         public static void Main(string[] args)
         {
             MainForm = new MainForm();
+            MainForm.OnLoad(EventArgs.Empty);
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
