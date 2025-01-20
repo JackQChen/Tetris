@@ -144,12 +144,14 @@ namespace TetrisApp
                 {
                     if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 30))
                     {
+                        // 保存截图
                         var imageData = Paint();
                         var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
                         if (!Directory.Exists(dir))
                             Directory.CreateDirectory(dir);
                         var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
                         File.WriteAllBytes(path, imageData);
+                        // 重置
                         serialPort.Write(new byte[] { 0xff }, 0, 1);
                         Restart();
                     }
@@ -166,7 +168,6 @@ namespace TetrisApp
             // 初始化串口
             serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
             serialPort.Open();
-
             Task.Factory.StartNew(() =>
             {
                 var buffer = new byte[1];
