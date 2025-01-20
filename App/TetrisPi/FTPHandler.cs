@@ -8,10 +8,11 @@ namespace TetrisApp
         private readonly string _ftpUsername = "";
         private readonly string _ftpPassword = "";
 
-        private readonly string _localFolder = "";
+        private readonly string _localFolder;
 
         public FTPHandler()
         {
+            _localFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
         }
 
         private HashSet<string> GetFtpFileListAsync()
