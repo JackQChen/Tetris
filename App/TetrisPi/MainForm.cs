@@ -1,10 +1,10 @@
+using System.IO.Ports;
+using System.Runtime.InteropServices;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System.IO.Ports;
-using System.Runtime.InteropServices;
 using Timer = System.Timers.Timer;
 
 namespace TetrisApp
@@ -176,16 +176,19 @@ namespace TetrisApp
                 var buffer = new byte[1];
                 while (true)
                 {
-                    var count = serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length).Result;
-                    if (count > 0)
-                        OnDataReceived(buffer[0]);
+                    if (serialPort.BytesToRead > 0)
+                    {
+                        var data = serialPort.ReadByte();
+                        OnDataReceived(data);
+                    }
+                    Thread.Sleep(1);
                 }
             }, TaskCreationOptions.LongRunning);
 
             Restart();
         }
 
-        private void OnDataReceived(byte data)
+        private void OnDataReceived(int data)
         {
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
                 return;
