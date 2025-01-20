@@ -140,6 +140,7 @@ namespace TetrisApp
             // 自动重置
             Task.Factory.StartNew(() =>
             {
+                var ftpHandler = new FTPHandler();
                 while (true)
                 {
                     if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 30))
@@ -151,6 +152,8 @@ namespace TetrisApp
                             Directory.CreateDirectory(dir);
                         var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
                         File.WriteAllBytes(path, imageData);
+                        // 同步文件
+                        ftpHandler.SyncFiles();
                         // 重置
                         serialPort.Write(new byte[] { 0xff }, 0, 1);
                         Restart();
