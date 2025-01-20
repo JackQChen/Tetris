@@ -173,25 +173,18 @@ namespace TetrisApp
 
             // 初始化串口
             serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            serialPort.DataReceived += OnDataReceived;
+            serialPort.DtrEnable = true;
             serialPort.Open();
-            Task.Factory.StartNew(() =>
-            {
-                while (true)
-                {
-                    if (serialPort.BytesToRead > 0)
-                    {
-                        var data = serialPort.ReadByte();
-                        OnDataReceived(data);
-                    }
-                    Thread.Sleep(1);
-                }
-            }, TaskCreationOptions.LongRunning);
 
             Restart();
         }
 
-        private void OnDataReceived(int data)
+        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
+            if (serialPort.BytesToRead == 0)
+                return;
+            var data = serialPort.ReadByte();
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
                 return;
             dtLastReceived = DateTime.Now;
