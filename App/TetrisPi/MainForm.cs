@@ -142,7 +142,7 @@ namespace TetrisApp
             {
                 while (true)
                 {
-                    if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 10))
+                    if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 30))
                     {
                         var imageData = Paint();
                         var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
@@ -153,7 +153,7 @@ namespace TetrisApp
                         serialPort.Write(new byte[] { 0xff }, 0, 1);
                         Restart();
                     }
-                    Thread.Sleep(10000);
+                    Thread.Sleep(30000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -1206,7 +1206,7 @@ namespace TetrisApp
 
         void DrawScore(Image<Rgba32> g)
         {
-            g.Mutate(x => x.DrawText($"Score: {GameScore}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
+            g.Mutate(x => x.DrawText($"Score: {GameScore}0", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
     }
 }
