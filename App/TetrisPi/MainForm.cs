@@ -1,10 +1,10 @@
-using System.IO.Ports;
-using System.Runtime.InteropServices;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.IO.Ports;
+using System.Runtime.InteropServices;
 using Timer = System.Timers.Timer;
 
 namespace TetrisApp
@@ -162,20 +162,27 @@ namespace TetrisApp
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
+
             // 初始化串口
             serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
-            serialPort.DataReceived += OnDataReceived;
-            serialPort.DtrEnable = true;
             serialPort.Open();
+
+            Task.Factory.StartNew(() =>
+            {
+                var buffer = new byte[1];
+                while (true)
+                {
+                    var count = serialPort.BaseStream.ReadAsync(buffer, 0, buffer.Length).Result;
+                    if (count > 0)
+                        OnDataReceived(buffer[0]);
+                }
+            }, TaskCreationOptions.LongRunning);
 
             Restart();
         }
 
-        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void OnDataReceived(byte data)
         {
-            if (serialPort.BytesToRead == 0)
-                return;
-            var data = serialPort.ReadByte();
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
                 return;
             dtLastReceived = DateTime.Now;
