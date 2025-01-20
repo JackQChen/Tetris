@@ -173,7 +173,6 @@ namespace TetrisApp
             serialPort.Open();
             Task.Factory.StartNew(() =>
             {
-                var buffer = new byte[1];
                 while (true)
                 {
                     if (serialPort.BytesToRead > 0)
