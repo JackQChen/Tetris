@@ -396,7 +396,7 @@ namespace TetrisApp
                     break;
                 case GameState.GameOver:
                     this.UITimer.Stop();
-                    Console.WriteLine($"游戏结束,{string.Format("你的得分是{0}，是否重来？", GameScore)}");
+                    Console.WriteLine($"Game Over! Score: {GameScore * 10}. Retry?");
                     break;
             }
         }
