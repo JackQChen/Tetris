@@ -192,7 +192,7 @@ namespace TetrisApp
             nextTetrisType = data / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
             nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-            Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
+            //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
         }
 
         void InitGrids()
@@ -396,7 +396,7 @@ namespace TetrisApp
                     break;
                 case GameState.GameOver:
                     this.UITimer.Stop();
-                    Console.WriteLine($"Game Over! Score: {GameScore * 10}. Retry?");
+                    //Console.WriteLine($"Game Over! Score: {GameScore * 10}. Retry?");
                     break;
             }
         }
@@ -958,7 +958,7 @@ namespace TetrisApp
 
             serialPort.Write(new byte[] { (byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)) }, 0, 1);
 
-            Console.WriteLine($"MoveX={x}, Change={change}");
+            //Console.WriteLine($"MoveX={x}, Change={change}");
         }
 
         //正在下落

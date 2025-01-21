@@ -10,11 +10,7 @@ namespace TetrisApp
         {
             var form = new MainForm();
             form.OnLoad(EventArgs.Empty);
-            while (true)
-            {
-                if (Console.ReadKey().Key == ConsoleKey.Escape)
-                    break;
-            }
+            new ManualResetEvent(false).WaitOne();
         }
     }
 }
