@@ -1167,6 +1167,7 @@ namespace TetrisApp
 
         void DrawBorderLine(Image<Rgba32> g)
         {
+            g.Mutate(x => x.Fill(new SolidBrush(Color.White), g.Bounds));
             g.Mutate(x => x.Draw(new SolidPen(Color.Black, 2), new Rectangle(kScenePoint, kSceneSize)));
             g.Mutate(x => x.Draw(new SolidPen(Color.Black, 2), new Rectangle(kPreviewPoint, kPreviewSize)));
             g.Mutate(x => x.Fill(GameBkgrd, new Rectangle(kScenePoint.X + 1, kScenePoint.Y + 1, kSceneSize.Width - 2, kSceneSize.Height - 2)));
@@ -1215,7 +1216,7 @@ namespace TetrisApp
 
         void DrawScore(Image<Rgba32> g)
         {
-            g.Mutate(x => x.DrawText($"Score: {GameScore}0", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
+            g.Mutate(x => x.DrawText($"Score: {GameScore * 10}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
     }
 }
