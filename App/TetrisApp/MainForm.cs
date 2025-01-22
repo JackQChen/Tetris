@@ -139,23 +139,26 @@ namespace TetrisApp
             this.UITimer.Enabled = true;
             this.UITimer.Interval = timerInterval;
             this.UITimer.Tick += OnTimer;
+            // 自动重置
             Task.Factory.StartNew(() =>
-           {
-               while (true)
-               {
-                   if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 10))
-                   {
-                       serialPort.Write(new byte[] { 0xff }, 0, 1);
-                       Restart();
-                   }
-                   Thread.Sleep(10000);
-               }
-           }, TaskCreationOptions.LongRunning);
+            {
+                while (true)
+                {
+                    if (dtLastReceived != DateTime.MinValue && ((DateTime.Now - dtLastReceived).TotalSeconds > 30))
+                    {
+                        // 重置
+                        serialPort.Write(new byte[] { 0xff }, 0, 1);
+                        Restart();
+                    }
+                    Thread.Sleep(30000);
+                }
+            }, TaskCreationOptions.LongRunning);
         }
 
         protected override void OnLoad(EventArgs e)
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
             // 初始化串口
             serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
             serialPort.DataReceived += OnDataReceived;
@@ -178,7 +181,7 @@ namespace TetrisApp
             nextTetrisType = data / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
             nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-            Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
+            //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
         }
 
         void InitGrids()
@@ -356,8 +359,6 @@ namespace TetrisApp
                     break;
             }
         }
-
-
 
         int dropCounter = 0;
         void OnTimer(object sender, EventArgs e)
@@ -958,7 +959,7 @@ namespace TetrisApp
 
             serialPort.Write(new byte[] { (byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)) }, 0, 1);
 
-            Console.WriteLine($"MoveX={x}, Change={change}");
+            //Console.WriteLine($"MoveX={x}, Change={change}");
         }
 
         //正在下落
