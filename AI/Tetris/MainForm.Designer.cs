@@ -33,14 +33,14 @@
             this.UITimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
-            // tetris
+            // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.WindowText;
-            this.ClientSize = new System.Drawing.Size(515, 477);
+            this.ClientSize = new System.Drawing.Size(515, 517);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "tetris";
+            this.Name = "MainForm";
             this.Text = "俄罗斯方块";
             this.ResumeLayout(false);
 

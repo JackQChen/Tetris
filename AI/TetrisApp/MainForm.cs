@@ -1,3 +1,5 @@
+using TetrisApp.Properties;
+
 namespace TetrisApp
 {
     public partial class MainForm : Form
@@ -30,7 +32,7 @@ namespace TetrisApp
         //网格大小
         const int kGridSize = 14;
         //画布起点
-        Point kScenePoint = new Point(90, 80);
+        Point kScenePoint = new Point(90, 78);
         //画布网格数 10x20
         const int kSceneWidth = 10;
         const int kSceneHeight = 20;
@@ -1134,8 +1136,8 @@ namespace TetrisApp
             {
                 return;
             }
-            //g.DrawImage(Resources)
-            //g.FillRectangles(showBrush, rects.ToArray());
+            foreach (var rect in allShown)
+                g.DrawImage(Resources.block, rect);
         }
 
         void DrawPreview(Graphics g)
