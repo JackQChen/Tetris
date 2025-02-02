@@ -28,9 +28,9 @@ namespace TetrisApp
             I, J, L, O, S, T, Z
         }
         //网格大小
-        const int kGridSize = 32;
+        const int kGridSize = 14;
         //画布起点
-        Point kScenePoint = new Point(10, 20);
+        Point kScenePoint = new Point(90, 80);
         //画布网格数 10x20
         const int kSceneWidth = 10;
         const int kSceneHeight = 20;
@@ -123,7 +123,7 @@ namespace TetrisApp
             //禁止拖动
             this.FormBorderStyle = FormBorderStyle.Fixed3D;
             //窗口大小
-            this.ClientSize = new Size((kSceneWidth + kPreviewWidth) * kGridSize + 30, (kSceneHeight) * kGridSize + 40);
+            //this.ClientSize = new Size((kSceneWidth + kPreviewWidth) * kGridSize + 30, (kSceneHeight) * kGridSize + 40);
             //窗口背景
             this.BackColor = SystemColors.Control;
             //双帧缓冲打开
@@ -236,6 +236,14 @@ namespace TetrisApp
                 return null;
             }
             return allGrids[x, y];
+        }
+
+        void GenerateNextTetris()
+        {
+            nextTetrisType = randGen.Next(7);//选择类型
+            nextChangeType = randGen.Next(4);//选择变体
+            nextChangeType = nextChangeType % changeNum[nextTetrisType];
+            nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
         }
 
         //在某个坐标位置生成掉落方块
@@ -365,8 +373,10 @@ namespace TetrisApp
             currentRunGridX = kRunGridBirthX;
             currentRunGridY = kRunGridBirthY;
 
-            if (nextTetrisType == -1)
-                return;
+            if (nextOffset == null)
+            {
+                GenerateNextTetris();
+            }
             currentOffset = nextOffset;
             curChangeType = nextChangeType;
             curTetrisType = nextTetrisType;
@@ -384,7 +394,7 @@ namespace TetrisApp
                 g.show = true;
             }
             //生成预览区的offset
-            //GenerateNextTetris();
+            GenerateNextTetris();
             //计算预览区网格
             CalcPreGrids();
             gameState = GameState.NormalDrop;
@@ -392,7 +402,6 @@ namespace TetrisApp
             if (IsAiControl)
             {
                 CalcAICtrl();
-                nextTetrisType = -1;
             }
         }
 
@@ -1093,7 +1102,7 @@ namespace TetrisApp
             base.OnPaint(e);
             Graphics dc = e.Graphics;
             //绘制边框
-            DrawBorderLine(dc);
+            //DrawBorderLine(dc);
             //绘制预览
             DrawPreview(dc);
             //绘制方块
@@ -1110,7 +1119,6 @@ namespace TetrisApp
             g.FillRectangle(GameBkgrd, new Rectangle(kPreviewPoint.X + 1, kPreviewPoint.Y + 1, kPreviewSize.Width - 2, kPreviewSize.Height - 2));
         }
 
-        Brush showBrush = new SolidBrush(Color.Black);
         Brush GameBkgrd = new SolidBrush(Color.FromArgb(147, 174, 97));
         void DrawTetris(Graphics g)
         {
@@ -1126,7 +1134,8 @@ namespace TetrisApp
             {
                 return;
             }
-            g.FillRectangles(showBrush, allShown.ToArray());
+            //g.DrawImage(Resources)
+            //g.FillRectangles(showBrush, rects.ToArray());
         }
 
         void DrawPreview(Graphics g)
@@ -1142,7 +1151,7 @@ namespace TetrisApp
             if (allShown.Count == 0)
                 return;
 
-            g.FillRectangles(showBrush, allShown.ToArray());
+            //g.FillRectangles(showBrush, allShown.ToArray());
         }
 
 
