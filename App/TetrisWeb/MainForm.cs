@@ -7,7 +7,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Timer = System.Timers.Timer;
 
-namespace Tetris
+namespace TetrisWeb
 {
     public class MainForm
     {

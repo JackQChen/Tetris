@@ -1,4 +1,4 @@
-namespace Tetris
+namespace TetrisWeb
 {
     public class Program
     {

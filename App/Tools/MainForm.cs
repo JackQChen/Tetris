@@ -1,6 +1,6 @@
 ﻿using System.IO.Ports;
 
-namespace App
+namespace Tools
 {
     public partial class MainForm : Form
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Tetris.Controllers
+namespace TetrisWeb.Controllers
 {
     public class HomeController : Controller
     {

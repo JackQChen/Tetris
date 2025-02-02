@@ -1,4 +1,4 @@
-﻿namespace App
+﻿namespace Tools
 {
     public partial class FrmGenerator : Form
     {
