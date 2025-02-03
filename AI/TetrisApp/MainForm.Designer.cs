@@ -41,7 +41,6 @@
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(400, 700);
             DoubleBuffered = true;
-            FormBorderStyle = FormBorderStyle.None;
             Margin = new Padding(4);
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;

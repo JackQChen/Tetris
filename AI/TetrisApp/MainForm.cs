@@ -32,7 +32,7 @@ namespace TetrisApp
         //网格大小
         const int kGridSize = 14;
         //画布起点
-        Point kScenePoint = new Point(90, 78);
+        Point kScenePoint = new Point(89, 102);
         //画布网格数 10x20
         const int kSceneWidth = 10;
         const int kSceneHeight = 20;
@@ -125,7 +125,7 @@ namespace TetrisApp
             //禁止拖动
             this.FormBorderStyle = FormBorderStyle.Fixed3D;
             //窗口大小
-            //this.ClientSize = new Size((kSceneWidth + kPreviewWidth) * kGridSize + 30, (kSceneHeight) * kGridSize + 40);
+            this.ClientSize = new Size(400, 750);
             //窗口背景
             this.BackColor = SystemColors.Control;
             //双帧缓冲打开
