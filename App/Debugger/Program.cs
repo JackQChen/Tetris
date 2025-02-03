@@ -1,4 +1,4 @@
-﻿namespace Tools
+﻿namespace Debugger
 {
     internal static class Program
     {

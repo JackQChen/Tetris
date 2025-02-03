@@ -1,4 +1,4 @@
-﻿namespace Tools
+﻿namespace Debugger
 {
     partial class FrmGenerator
     {

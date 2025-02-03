@@ -1,4 +1,4 @@
-﻿namespace Tools
+﻿namespace Debugger
 {
     public partial class FrmGenerator : Form
     {

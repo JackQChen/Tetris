@@ -1,6 +1,6 @@
 ﻿using System.IO.Ports;
 
-namespace Tools
+namespace Debugger
 {
     public partial class MainForm : Form
     {
