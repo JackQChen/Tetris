@@ -16,7 +16,7 @@ void setup() {
 	pinMode(A1, INPUT);
 }
 
-int channelRead(byte channel, int pin)
+int channelRead(byte channel, uint8_t pin)
 {
 	digitalWrite(6, channel >> 3 & 0b1);
 	digitalWrite(7, channel >> 2 & 0b1);
