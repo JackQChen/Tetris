@@ -45,6 +45,7 @@ void loop() {
 	{
 		byte data[3] = { 0, 0, 0 };
 		data[0] = (9 - columnIndex) << 4;
+		analogRead(A1); //重置状态
 		data[0] |= (channelRead(0b1010, A1) < thresholdLow ? 1 : 0) << 3;
 		data[0] |= (channelRead(0b0010, A1) < thresholdLow ? 1 : 0) << 2;
 		data[0] |= (channelRead(0b1100, A1) < thresholdLow ? 1 : 0) << 1;
@@ -57,6 +58,7 @@ void loop() {
 		data[1] |= (channelRead(0b0011, A0) < thresholdLow ? 1 : 0) << 2;
 		data[1] |= (channelRead(0b1101, A0) < thresholdLow ? 1 : 0) << 1;
 		data[1] |= (channelRead(0b0101, A0) < thresholdLow ? 1 : 0);
+		analogRead(A1); //重置状态
 		data[2] = (channelRead(0b0001, A1) < thresholdLow ? 1 : 0) << 7;
 		data[2] |= (channelRead(0b1001, A1) < thresholdLow ? 1 : 0) << 6;
 		data[2] |= (channelRead(0b0101, A1) < thresholdLow ? 1 : 0) << 5;
