@@ -160,7 +160,7 @@ namespace TetrisApp
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
             // 初始化串口
-            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             serialPort.DataReceived += OnDataReceived;
             serialPort.DtrEnable = true;
             serialPort.Open();
@@ -169,19 +169,53 @@ namespace TetrisApp
             Restart();
         }
 
+        int receivedIndex = 0;
+        byte[] receivedData = new byte[3];
+
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            if (serialPort.BytesToRead == 0)
-                return;
-            var data = serialPort.ReadByte();
-            if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
-                return;
-            dtLastReceived = DateTime.Now;
-            nextChangeType = data % 10;
-            nextTetrisType = data / 10;
-            nextChangeType = nextChangeType % changeNum[nextTetrisType];
-            nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
+            int bytesToRead = serialPort.BytesToRead;
+            while (bytesToRead > 0 && receivedIndex < 3)
+            {
+                receivedData[receivedIndex] = (byte)serialPort.ReadByte();
+                receivedIndex++;
+                bytesToRead--;
+            }
+            if (receivedIndex == 3)
+            {
+                receivedIndex = 0;
+                UpdateGridData(receivedData);
+            }
+
             //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
+        }
+
+        void UpdateGridData(byte[] buffer)
+        {
+            var d1 = buffer[0];
+            var col = d1 >> 4;
+            allGrids[col, 0].show = (d1 >> 3 & 0b1) == 1;
+            allGrids[col, 1].show = (d1 >> 2 & 0b1) == 1;
+            allGrids[col, 2].show = (d1 >> 1 & 0b1) == 1;
+            allGrids[col, 3].show = (d1 & 0b1) == 1;
+            var d2 = buffer[1];
+            allGrids[col, 4].show = (d2 >> 7 & 0b1) == 1;
+            allGrids[col, 5].show = (d2 >> 6 & 0b1) == 1;
+            allGrids[col, 6].show = (d2 >> 5 & 0b1) == 1;
+            allGrids[col, 7].show = (d2 >> 4 & 0b1) == 1;
+            allGrids[col, 8].show = (d2 >> 3 & 0b1) == 1;
+            allGrids[col, 9].show = (d2 >> 2 & 0b1) == 1;
+            allGrids[col, 10].show = (d2 >> 1 & 0b1) == 1;
+            allGrids[col, 11].show = (d2 & 0b1) == 1;
+            var d3 = buffer[2];
+            allGrids[col, 12].show = (d3 >> 7 & 0b1) == 1;
+            allGrids[col, 13].show = (d3 >> 6 & 0b1) == 1;
+            allGrids[col, 14].show = (d3 >> 5 & 0b1) == 1;
+            allGrids[col, 15].show = (d3 >> 4 & 0b1) == 1;
+            allGrids[col, 16].show = (d3 >> 3 & 0b1) == 1;
+            allGrids[col, 17].show = (d3 >> 2 & 0b1) == 1;
+            allGrids[col, 18].show = (d3 >> 1 & 0b1) == 1;
+            allGrids[col, 19].show = (d3 & 0b1) == 1;
         }
 
         void InitGrids()

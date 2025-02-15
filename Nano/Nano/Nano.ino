@@ -1,66 +1,74 @@
-#include "dic.h"
-const int ROWS = 4; // 行数
-const int COLS = 4; // 列数
-bool pixelData[ROWS][COLS]; // 用于存储像素点亮灭状态
 
 // 配置
-const int analogPin = A0;        // 模拟信号输入引脚
 const int thresholdHigh = 3 * 1024 / 5, thresholdLow = 1 * 1024 / 5; //阈值
-const int debounceTime = 3;     // 防抖时间（单位：ms）
 
 // 全局变量
-unsigned long lastTriggerTime = 0; // 上次触发的时间
-unsigned long lastDetectTime = 0;  // 上次检测的时间
-unsigned long lastReportTime = 0;  // 上次报告的时间
-
-int lastReportValue = 0; // 上次报告的值
+int columnIndex = 0; // 当前列位置
 
 void setup() {
 	ADCSRA = (ADCSRA & 0xF8) | 0x02; // 设置分频器
-	Serial.begin(9600); // 初始化串口通信
-	pinMode(2, OUTPUT);
-	pinMode(3, OUTPUT);
-	pinMode(4, OUTPUT);
-	pinMode(5, OUTPUT);
+	Serial.begin(115200); // 初始化串口通信
+
+	for (int i = 2;i < 10;i++)
+		pinMode(i, OUTPUT);
+
+	pinMode(A0, INPUT);
+	pinMode(A1, INPUT);
+}
+
+int channelRead(byte channel, int pin)
+{
+	digitalWrite(6, channel >> 3 & 0b1);
+	digitalWrite(7, channel >> 2 & 0b1);
+	digitalWrite(8, channel >> 1 & 0b1);
+	digitalWrite(9, channel & 0b1);
+	return analogRead(pin);
 }
 
 void loop() {
-	// 获取当前时间
-	unsigned long currentTime = millis();
-
-	// 判断是否超过触发阈值
-	if (analogRead(analogPin) > thresholdHigh) {
-		// 判断是否超过防抖时间
-		if (currentTime - lastTriggerTime > debounceTime) {
-			lastTriggerTime = currentTime; // 更新触发时间
-			updatePixelData();
-		}
+	//检测列数据
+	int channel = 0;
+	switch (columnIndex)
+	{
+	case 0: channel = 0b0000; break;
+	case 1: channel = 0b1000; break;
+	case 2: channel = 0b0100; break;
+	case 3: channel = 0b1100; break;
+	case 4: channel = 0b0010; break;
+	case 5: channel = 0b1010; break;
+	case 6: channel = 0b0110; break;
+	case 7: channel = 0b1110; break;
+	case 8: channel = 0b0001; break;
+	case 9: channel = 0b1001; break;
 	}
-
-	// 检测数据
-	if (currentTime - lastDetectTime >= 50) {
-		lastDetectTime = currentTime; // 更新检测时间
-		// 计算整个矩阵
-		uint8_t packedData[2] = { 0 };
-		for (int row = 0; row < ROWS; row++) {
-			for (int col = 0; col < COLS; col++) {
-				if (pixelData[row][col]) {
-					int bitIndex = row * COLS + col;
-					packedData[bitIndex / 8] |= (1 << (bitIndex % 8));
-				}
-			}
-		}
-		// 匹配数据
-		int value = findValue(packedData);
-		if (value != -1 && lastReportValue != value)
-		{
-			if (currentTime - lastReportTime >= 500)
-			{
-				lastReportTime = currentTime;
-				Serial.write(value);
-			}
-		}
-		lastReportValue = value;
+	if (channelRead(channel, A0) > thresholdHigh)
+	{
+		byte data[3] = { 0, 0, 0 };
+		data[0] = (9 - columnIndex) << 4;
+		data[0] |= (channelRead(0b1010, A1) < thresholdLow ? 1 : 0) << 3;
+		data[0] |= (channelRead(0b0010, A1) < thresholdLow ? 1 : 0) << 2;
+		data[0] |= (channelRead(0b1100, A1) < thresholdLow ? 1 : 0) << 1;
+		data[0] |= (channelRead(0b0100, A1) < thresholdLow ? 1 : 0);
+		data[1] |= (channelRead(0b1000, A1) < thresholdLow ? 1 : 0) << 7;
+		data[1] |= (channelRead(0b0000, A1) < thresholdLow ? 1 : 0) << 6;
+		data[1] |= (channelRead(0b1111, A0) < thresholdLow ? 1 : 0) << 5;
+		data[1] |= (channelRead(0b0111, A0) < thresholdLow ? 1 : 0) << 4;
+		data[1] |= (channelRead(0b1011, A0) < thresholdLow ? 1 : 0) << 3;
+		data[1] |= (channelRead(0b0011, A0) < thresholdLow ? 1 : 0) << 2;
+		data[1] |= (channelRead(0b1101, A0) < thresholdLow ? 1 : 0) << 1;
+		data[1] |= (channelRead(0b0101, A0) < thresholdLow ? 1 : 0);
+		data[2] |= (channelRead(0b0001, A1) < thresholdLow ? 1 : 0) << 7;
+		data[2] |= (channelRead(0b1001, A1) < thresholdLow ? 1 : 0) << 6;
+		data[2] |= (channelRead(0b0101, A1) < thresholdLow ? 1 : 0) << 5;
+		data[2] |= (channelRead(0b1101, A1) < thresholdLow ? 1 : 0) << 4;
+		data[2] |= (channelRead(0b0011, A1) < thresholdLow ? 1 : 0) << 3;
+		data[2] |= (channelRead(0b1011, A1) < thresholdLow ? 1 : 0) << 2;
+		data[2] |= (channelRead(0b0111, A1) < thresholdLow ? 1 : 0) << 1;
+		data[2] |= (channelRead(0b1111, A1) < thresholdLow ? 1 : 0);
+		Serial.write(data, 3);
+		columnIndex++;
+		if (columnIndex > 9)
+			columnIndex = 0;
 	}
 
 	// 检查串口是否接收到数据
@@ -68,10 +76,10 @@ void loop() {
 		byte data = Serial.read();
 		if (data == 0xff)
 		{
-			digitalWrite(5, HIGH);
-			delay(80);
-			digitalWrite(5, LOW);
-			delay(80);
+			digitalWrite(2, HIGH);
+			delay(50);
+			digitalWrite(2, LOW);
+			delay(50);
 			return;
 		}
 		// 读取数据
@@ -81,44 +89,19 @@ void loop() {
 
 		for (int i = 0;i < change;i++)
 		{
-			digitalWrite(4, HIGH);
-			delay(80);
-			digitalWrite(4, LOW);
-			delay(80);
+			digitalWrite(3, HIGH);
+			delay(50);
+			digitalWrite(3, LOW);
+			delay(50);
 		}
-		int pin = dir == 0 ? 2 : 3;
+		int pin = dir == 0 ? 4 : 5;
 		for (int i = 0;i < move;i++)
 		{
 			digitalWrite(pin, HIGH);
-			delay(80);
+			delay(50);
 			digitalWrite(pin, LOW);
-			delay(80);
+			delay(50);
 		}
 	}
-
-	// 稍作延时，避免过于频繁采样
 	delay(1);
-}
-
-int findValue(const byte packedData[2]) {
-	// 遍历字典
-	for (int i = 0; i < sizeof(dic) / sizeof(dic[0]); i++) {
-		// 比较前两个字节是否匹配
-		if (dic[i][0] == packedData[0] && dic[i][1] == packedData[1]) {
-			return dic[i][2]; // 返回第三个字节作为 value
-		}
-	}
-	return -1; // 未找到时返回 -1 表示无效值
-}
-
-// 更新像素矩阵中指定列的数据
-void updatePixelData()
-{
-	for (int i = 0; i < 4; i++) {
-		pixelData[0][i] = analogRead(A1) < thresholdLow;
-		pixelData[1][i] = analogRead(A2) < thresholdLow;
-		pixelData[2][i] = analogRead(A3) < thresholdLow;
-		pixelData[3][i] = analogRead(A4) < thresholdLow;
-		delayMicroseconds(1900);
-	}
 }
