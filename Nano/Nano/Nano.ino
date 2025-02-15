@@ -49,7 +49,7 @@ void loop() {
 		data[0] |= (channelRead(0b0010, A1) < thresholdLow ? 1 : 0) << 2;
 		data[0] |= (channelRead(0b1100, A1) < thresholdLow ? 1 : 0) << 1;
 		data[0] |= (channelRead(0b0100, A1) < thresholdLow ? 1 : 0);
-		data[1] |= (channelRead(0b1000, A1) < thresholdLow ? 1 : 0) << 7;
+		data[1] = (channelRead(0b1000, A1) < thresholdLow ? 1 : 0) << 7;
 		data[1] |= (channelRead(0b0000, A1) < thresholdLow ? 1 : 0) << 6;
 		data[1] |= (channelRead(0b1111, A0) < thresholdLow ? 1 : 0) << 5;
 		data[1] |= (channelRead(0b0111, A0) < thresholdLow ? 1 : 0) << 4;
@@ -57,7 +57,7 @@ void loop() {
 		data[1] |= (channelRead(0b0011, A0) < thresholdLow ? 1 : 0) << 2;
 		data[1] |= (channelRead(0b1101, A0) < thresholdLow ? 1 : 0) << 1;
 		data[1] |= (channelRead(0b0101, A0) < thresholdLow ? 1 : 0);
-		data[2] |= (channelRead(0b0001, A1) < thresholdLow ? 1 : 0) << 7;
+		data[2] = (channelRead(0b0001, A1) < thresholdLow ? 1 : 0) << 7;
 		data[2] |= (channelRead(0b1001, A1) < thresholdLow ? 1 : 0) << 6;
 		data[2] |= (channelRead(0b0101, A1) < thresholdLow ? 1 : 0) << 5;
 		data[2] |= (channelRead(0b1101, A1) < thresholdLow ? 1 : 0) << 4;
