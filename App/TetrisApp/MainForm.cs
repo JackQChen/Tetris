@@ -1,3 +1,4 @@
+using System;
 using System.IO.Ports;
 using System.Runtime.InteropServices;
 
@@ -171,20 +172,25 @@ namespace TetrisApp
 
         int receivedIndex = 0;
         byte[] receivedData = new byte[3];
+        byte[] buffer = new byte[1024 * 1024];
 
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             int bytesToRead = serialPort.BytesToRead;
-            while (bytesToRead > 0 && receivedIndex < 3)
+            if (bytesToRead > 0)
             {
-                receivedData[receivedIndex] = (byte)serialPort.ReadByte();
-                receivedIndex++;
-                bytesToRead--;
-            }
-            if (receivedIndex == 3)
-            {
-                receivedIndex = 0;
-                UpdateGridData(receivedData);
+                int bytesRead = serialPort.Read(buffer, 0, bytesToRead);
+                for (int i = 0; i < bytesRead; i++)
+                {
+                    receivedData[receivedIndex] = buffer[i];
+                    receivedIndex++;
+
+                    if (receivedIndex == 3)
+                    {
+                        receivedIndex = 0;
+                        UpdateGridData(receivedData);
+                    }
+                }
             }
 
             //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
