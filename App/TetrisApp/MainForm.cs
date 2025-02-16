@@ -242,14 +242,14 @@ namespace TetrisApp
                 var matchedTetris = TetrisMapper.Mapper.FirstOrDefault(p => p[0] == tetrisData[0] && p[1] == tetrisData[1]);
                 if (matchedTetris != null)
                 {
+                    for (int i = 0; i < 10; i++)
+                        for (int j = 4; j < 20; j++)
+                            allGrids[i, j].show = bufferGrid[i, j];
                     nextChangeType = matchedTetris[2] % 10;
                     nextTetrisType = matchedTetris[2] / 10;
                     nextChangeType = nextChangeType % changeNum[nextTetrisType];
                     nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
                     dtLastReceived = DateTime.Now;
-                    for (int i = 0; i < 10; i++)
-                        for (int j = 4; j < 20; j++)
-                            allGrids[i, j].show = bufferGrid[i, j];
                 }
             }
         }
