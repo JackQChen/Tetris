@@ -172,7 +172,7 @@ namespace TetrisApp
             font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
 
             // 初始化串口
-            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 9600); // 修改为实际的串口号
+            serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             serialPort.DataReceived += OnDataReceived;
             serialPort.DtrEnable = true;
             serialPort.Open();
@@ -180,19 +180,89 @@ namespace TetrisApp
             Restart();
         }
 
+        int receivedIndex = 0;
+        byte[] receivedData = new byte[3];
+        byte[] receivedBuffer = new byte[1024];
+
+        byte[] tetrisData = new byte[2];
+        bool[,] bufferGrid = new bool[10, 20];
+
+
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            if (serialPort.BytesToRead == 0)
-                return;
-            var data = serialPort.ReadByte();
+            int bytesToRead = serialPort.BytesToRead;
+            if (bytesToRead > 0)
+            {
+                int bytesRead = serialPort.Read(receivedBuffer, 0, bytesToRead);
+                for (int i = 0; i < bytesRead; i++)
+                {
+                    receivedData[receivedIndex] = receivedBuffer[i];
+                    receivedIndex++;
+
+                    if (receivedIndex == 3)
+                    {
+                        receivedIndex = 0;
+                        UpdateGridData(receivedData);
+                    }
+                }
+            }
+
+            //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
+        }
+
+        void UpdateGridData(byte[] buffer)
+        {
+            var d1 = buffer[0];
+            var col = d1 >> 4;
+            bufferGrid[col, 0] = (d1 >> 3 & 0b1) == 1;
+            bufferGrid[col, 1] = (d1 >> 2 & 0b1) == 1;
+            bufferGrid[col, 2] = (d1 >> 1 & 0b1) == 1;
+            bufferGrid[col, 3] = (d1 & 0b1) == 1;
+            var d2 = buffer[1];
+            bufferGrid[col, 4] = (d2 >> 7 & 0b1) == 1;
+            bufferGrid[col, 5] = (d2 >> 6 & 0b1) == 1;
+            bufferGrid[col, 6] = (d2 >> 5 & 0b1) == 1;
+            bufferGrid[col, 7] = (d2 >> 4 & 0b1) == 1;
+            bufferGrid[col, 8] = (d2 >> 3 & 0b1) == 1;
+            bufferGrid[col, 9] = (d2 >> 2 & 0b1) == 1;
+            bufferGrid[col, 10] = (d2 >> 1 & 0b1) == 1;
+            bufferGrid[col, 11] = (d2 & 0b1) == 1;
+            var d3 = buffer[2];
+            bufferGrid[col, 12] = (d3 >> 7 & 0b1) == 1;
+            bufferGrid[col, 13] = (d3 >> 6 & 0b1) == 1;
+            bufferGrid[col, 14] = (d3 >> 5 & 0b1) == 1;
+            bufferGrid[col, 15] = (d3 >> 4 & 0b1) == 1;
+            bufferGrid[col, 16] = (d3 >> 3 & 0b1) == 1;
+            bufferGrid[col, 17] = (d3 >> 2 & 0b1) == 1;
+            bufferGrid[col, 18] = (d3 >> 1 & 0b1) == 1;
+            bufferGrid[col, 19] = (d3 & 0b1) == 1;
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
                 return;
-            dtLastReceived = DateTime.Now;
-            nextChangeType = data % 10;
-            nextTetrisType = data / 10;
-            nextChangeType = nextChangeType % changeNum[nextTetrisType];
-            nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-            //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
+            if (col == 6)
+            {
+                tetrisData[0] = 0;
+                tetrisData[1] = 0;
+                var pos = 8;
+                for (int i = 0; i < 2; i++)
+                    for (int j = 0; j < 4; j++)
+                        tetrisData[0] |= (byte)((bufferGrid[j + 3, i] ? 1 : 0) << --pos);
+                pos = 8;
+                for (int i = 0; i < 2; i++)
+                    for (int j = 0; j < 4; j++)
+                        tetrisData[1] |= (byte)((bufferGrid[j + 3, i + 2] ? 1 : 0) << --pos);
+                var matchedTetris = TetrisMapper.Mapper.FirstOrDefault(p => p[0] == tetrisData[0] && p[1] == tetrisData[1]);
+                if (matchedTetris != null)
+                {
+                    for (int i = 0; i < 10; i++)
+                        for (int j = 4; j < 20; j++)
+                            allGrids[i, j].show = bufferGrid[i, j];
+                    nextChangeType = matchedTetris[2] % 10;
+                    nextTetrisType = matchedTetris[2] / 10;
+                    nextChangeType = nextChangeType % changeNum[nextTetrisType];
+                    nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
+                    dtLastReceived = DateTime.Now;
+                }
+            }
         }
 
         void InitGrids()
@@ -1066,7 +1136,7 @@ namespace TetrisApp
                 }
             }
             //积分
-            if (destroyLineNum > 0)
+            if (destroyLineNum > 0 && destroyLineNum < 8)
             {
                 GameScore += destroyLineNum * scoreParam[destroyLineNum - 1];
             }
@@ -1218,5 +1288,98 @@ namespace TetrisApp
         {
             g.Mutate(x => x.DrawText($"Score: {GameScore * 10}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
         }
+    }
+
+    public class TetrisMapper
+    {
+        public static byte[][] Mapper = new byte[][] {
+            //匹配类型
+            // O
+            new byte[] {0x66, 0x0, 30  },
+            new byte[] {0x6, 0x60, 30  },
+            new byte[] {0x0, 0x66, 30  },
+                    
+            // I 0	     
+            new byte[] {0x22, 0x20, 0  },
+            new byte[] {0x22, 0x22, 0  },
+                    
+            // I 90	     
+            new byte[] {0xf0, 0x0, 1   },
+            new byte[] {0xf, 0x0, 1    },
+            new byte[] {0x0, 0xf0, 1   },
+            new byte[] {0x0, 0xf, 1    },
+                    
+            // S 0	     
+            new byte[] {0x6c, 0x0, 41  },
+            new byte[] {0x6, 0xc0, 41  },
+            new byte[] {0x0, 0x6c, 41  },
+                    
+            // S 90
+            new byte[] {0x8c, 0x40, 40 },
+            new byte[] {0x8, 0xc4, 40  },
+                    
+            // Z 0
+            new byte[] {0xc6, 0x0, 60  },
+            new byte[] {0xc, 0x60, 60  },
+            new byte[] {0x0, 0xc6, 60  },
+                    
+            // Z 90
+            new byte[] {0x4c, 0x80, 61 },
+            new byte[] {0x4, 0xc8, 61  },
+                    
+            // J 0
+            new byte[] {0x44, 0xc0, 10 },
+            new byte[] {0x4, 0x4c, 10  },
+                    
+            // J 90
+            new byte[] {0x8e, 0x0, 11  },
+            new byte[] {0x8, 0xe0, 11  },
+            new byte[] {0x0, 0x8e, 11  },
+                    
+            // J 180
+            new byte[] {0xc8, 0x80, 12 },
+            new byte[] {0xc, 0x88, 12  },
+                    
+            // J 270
+            new byte[] {0xe2, 0x0, 13  },
+            new byte[] {0xe, 0x20, 13  },
+            new byte[] {0x0, 0xe2, 13  },
+                    
+            // L 0
+            new byte[] {0x88, 0xc0, 20 },
+            new byte[] {0x8, 0x8c, 20  },
+                    
+            // L 90
+            new byte[] {0xe8, 0x0, 21  },
+            new byte[] {0xe, 0x80, 21  },
+            new byte[] {0x0, 0xe8, 21  },
+                    
+            // L 180
+            new byte[] {0xc4, 0x40, 22 },
+            new byte[] {0xc, 0x44, 22  },
+                    
+            // L 270   
+            new byte[] {0x2e, 0x0, 23  },
+            new byte[] {0x2, 0xe0, 23  },
+            new byte[] {0x0, 0x2e, 23  },
+                    
+            // T 0	     
+            new byte[] {0xe4, 0x0, 50  },
+            new byte[] {0xe, 0x40, 50  },
+            new byte[] {0x0, 0xe4, 50  },
+                    
+            // T 90	   
+            new byte[] {0x4c, 0x40, 51 },
+            new byte[] {0x4, 0xc4, 51  },
+                    
+            // T 180     
+            new byte[] {0x4e, 0x0, 52  },
+            new byte[] {0x4, 0xe0, 52  },
+            new byte[] {0x0, 0x4e, 52  },
+                    
+            // T 270     
+            new byte[] {0x8c, 0x80, 53 },
+            new byte[] {0x8, 0xc8, 53  }
+        };
     }
 }
