@@ -456,15 +456,7 @@ namespace TetrisApp
                     break;
                 case GameState.GameOver:
                     this.UITimer.Stop();
-                    DialogResult ret = MessageBox.Show(string.Format("你的得分是{0}，是否重来？", GameScore), "游戏结束", MessageBoxButtons.YesNo);
-                    if (ret == DialogResult.Yes)
-                    {
-                        Restart();
-                    }
-                    else
-                    {
-                        this.Close();
-                    }
+                    Restart();
                     break;
             }
 
