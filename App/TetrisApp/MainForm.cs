@@ -171,7 +171,7 @@ namespace TetrisApp
 
         int receivedIndex = 0;
         byte[] receivedData = new byte[3];
-        byte[] receivedBuffer = new byte[1024];
+        byte[] receivedBuffer = new byte[1024 * 1024];
 
         byte[] tetrisData = new byte[2];
         bool[,] bufferGrid = new bool[10, 20];
@@ -385,7 +385,7 @@ namespace TetrisApp
             }
         }
 
-        //从新开始
+        //重新开始
         void Restart()
         {
             GameScore = 0;
