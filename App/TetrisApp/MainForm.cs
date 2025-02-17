@@ -1226,16 +1226,31 @@ namespace TetrisApp
 
         void DrawBorderLine(Graphics g)
         {
-            g.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(kScenePoint, kSceneSize));
-            g.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(kPreviewPoint, kPreviewSize));
+            g.DrawRectangle(penBorder, new Rectangle(348, 438, 113, 223));
+            g.DrawRectangle(penBorder, new Rectangle(kPreviewPoint, kPreviewSize));
+            g.DrawRectangle(penBorder, new Rectangle(kScenePoint, kSceneSize));
+            g.DrawRectangle(penBorder, new Rectangle(kPreviewPoint, kPreviewSize));
+
+            g.FillRectangle(GameBkgrd, new Rectangle(349, 439, 111, 221));
             g.FillRectangle(GameBkgrd, new Rectangle(kScenePoint.X + 1, kScenePoint.Y + 1, kSceneSize.Width - 2, kSceneSize.Height - 2));
             g.FillRectangle(GameBkgrd, new Rectangle(kPreviewPoint.X + 1, kPreviewPoint.Y + 1, kPreviewSize.Width - 2, kPreviewSize.Height - 2));
         }
 
         Brush showBrush = new SolidBrush(Color.Black);
         Brush GameBkgrd = new SolidBrush(Color.FromArgb(147, 174, 97));
+        Pen penBorder = new Pen(Color.Black, 2);
+
         void DrawTetris(Graphics g)
         {
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 20; j++)
+                {
+                    if (bufferGrid[i, j])
+                        g.FillRectangle(showBrush, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+                }
+            }
+
             List<Rectangle> allShown = new List<Rectangle>();
             foreach (Grid grid in allGrids)
             {
