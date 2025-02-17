@@ -18,56 +18,42 @@ void setup() {
 
 int channelRead(byte channel, uint8_t pin)
 {
-	digitalWrite(6, channel >> 3 & 0b1);
-	digitalWrite(7, channel >> 2 & 0b1);
-	digitalWrite(8, channel >> 1 & 0b1);
-	digitalWrite(9, channel & 0b1);
+	digitalWrite(6, channel & 0b1);
+	digitalWrite(7, channel >> 1 & 0b1);
+	digitalWrite(8, channel >> 2 & 0b1);
+	digitalWrite(9, channel >> 3 & 0b1);
 	return analogRead(pin);
 }
 
 void loop() {
 	//检测列数据
-	int channel = 0;
-	switch (columnIndex)
-	{
-	case 0: channel = 0b0000; break;
-	case 1: channel = 0b1000; break;
-	case 2: channel = 0b0100; break;
-	case 3: channel = 0b1100; break;
-	case 4: channel = 0b0010; break;
-	case 5: channel = 0b1010; break;
-	case 6: channel = 0b0110; break;
-	case 7: channel = 0b1110; break;
-	case 8: channel = 0b0001; break;
-	case 9: channel = 0b1001; break;
-	}
-	if (channelRead(channel, A0) > thresholdHigh)
+	if (channelRead(columnIndex, A0) > thresholdHigh)
 	{
 		byte data[3] = { 0, 0, 0 };
 		data[0] = (9 - columnIndex) << 4;
 		analogRead(A1); //等待ADC稳定
-		data[0] |= (channelRead(0b1010, A1) < thresholdLow ? 1 : 0) << 3;
-		data[0] |= (channelRead(0b0010, A1) < thresholdLow ? 1 : 0) << 2;
-		data[0] |= (channelRead(0b1100, A1) < thresholdLow ? 1 : 0) << 1;
-		data[0] |= (channelRead(0b0100, A1) < thresholdLow ? 1 : 0);
-		data[1] = (channelRead(0b1000, A1) < thresholdLow ? 1 : 0) << 7;
-		data[1] |= (channelRead(0b0000, A1) < thresholdLow ? 1 : 0) << 6;
+		data[0] |= (channelRead(5, A1) < thresholdLow ? 1 : 0) << 3;
+		data[0] |= (channelRead(4, A1) < thresholdLow ? 1 : 0) << 2;
+		data[0] |= (channelRead(3, A1) < thresholdLow ? 1 : 0) << 1;
+		data[0] |= (channelRead(2, A1) < thresholdLow ? 1 : 0);
+		data[1] = (channelRead(1, A1) < thresholdLow ? 1 : 0) << 7;
+		data[1] |= (channelRead(0, A1) < thresholdLow ? 1 : 0) << 6;
 		analogRead(A0); //等待ADC稳定
-		data[1] |= (channelRead(0b1111, A0) < thresholdLow ? 1 : 0) << 5;
-		data[1] |= (channelRead(0b0111, A0) < thresholdLow ? 1 : 0) << 4;
-		data[1] |= (channelRead(0b1011, A0) < thresholdLow ? 1 : 0) << 3;
-		data[1] |= (channelRead(0b0011, A0) < thresholdLow ? 1 : 0) << 2;
-		data[1] |= (channelRead(0b1101, A0) < thresholdLow ? 1 : 0) << 1;
-		data[1] |= (channelRead(0b0101, A0) < thresholdLow ? 1 : 0);
+		data[1] |= (channelRead(15, A0) < thresholdLow ? 1 : 0) << 5;
+		data[1] |= (channelRead(14, A0) < thresholdLow ? 1 : 0) << 4;
+		data[1] |= (channelRead(13, A0) < thresholdLow ? 1 : 0) << 3;
+		data[1] |= (channelRead(12, A0) < thresholdLow ? 1 : 0) << 2;
+		data[1] |= (channelRead(11, A0) < thresholdLow ? 1 : 0) << 1;
+		data[1] |= (channelRead(10, A0) < thresholdLow ? 1 : 0);
 		analogRead(A1); //等待ADC稳定
-		data[2] = (channelRead(0b0001, A1) < thresholdLow ? 1 : 0) << 7;
-		data[2] |= (channelRead(0b1001, A1) < thresholdLow ? 1 : 0) << 6;
-		data[2] |= (channelRead(0b0101, A1) < thresholdLow ? 1 : 0) << 5;
-		data[2] |= (channelRead(0b1101, A1) < thresholdLow ? 1 : 0) << 4;
-		data[2] |= (channelRead(0b0011, A1) < thresholdLow ? 1 : 0) << 3;
-		data[2] |= (channelRead(0b1011, A1) < thresholdLow ? 1 : 0) << 2;
-		data[2] |= (channelRead(0b0111, A1) < thresholdLow ? 1 : 0) << 1;
-		data[2] |= (channelRead(0b1111, A1) < thresholdLow ? 1 : 0);
+		data[2] = (channelRead(8, A1) < thresholdLow ? 1 : 0) << 7;
+		data[2] |= (channelRead(9, A1) < thresholdLow ? 1 : 0) << 6;
+		data[2] |= (channelRead(10, A1) < thresholdLow ? 1 : 0) << 5;
+		data[2] |= (channelRead(11, A1) < thresholdLow ? 1 : 0) << 4;
+		data[2] |= (channelRead(12, A1) < thresholdLow ? 1 : 0) << 3;
+		data[2] |= (channelRead(13, A1) < thresholdLow ? 1 : 0) << 2;
+		data[2] |= (channelRead(14, A1) < thresholdLow ? 1 : 0) << 1;
+		data[2] |= (channelRead(15, A1) < thresholdLow ? 1 : 0);
 		Serial.write(data, 3);
 		columnIndex++;
 		if (columnIndex > 9)
