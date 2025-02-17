@@ -75,9 +75,6 @@
       <DeploymentContent>true</DeploymentContent>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="dic.h" />
-  </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>

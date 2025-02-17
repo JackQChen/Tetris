@@ -9,9 +9,4 @@
   <ItemGroup>
     <ClCompile Include="Nano.ino" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="dic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
 </Project>
