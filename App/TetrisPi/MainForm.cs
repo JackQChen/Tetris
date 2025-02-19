@@ -213,6 +213,8 @@ namespace TetrisApp
         {
             var d1 = buffer[0];
             var col = d1 >> 4;
+            if (col > 9)
+                return;
             bufferGrid[col, 0] = (d1 >> 3 & 0b1) == 1;
             bufferGrid[col, 1] = (d1 >> 2 & 0b1) == 1;
             bufferGrid[col, 2] = (d1 >> 1 & 0b1) == 1;
