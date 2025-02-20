@@ -174,6 +174,12 @@ namespace TetrisApp
             // 初始化串口
             serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             serialPort.DataReceived += OnDataReceived;
+
+            serialPort.WriteTimeout = 1;
+            serialPort.WriteBufferSize = 1;
+
+            receivedBuffer = new byte[serialPort.ReadBufferSize];
+
             serialPort.Open();
 
             Restart();
@@ -181,7 +187,7 @@ namespace TetrisApp
 
         int receivedIndex = 0;
         byte[] receivedData = new byte[3];
-        byte[] receivedBuffer = new byte[1024];
+        byte[] receivedBuffer = Array.Empty<byte>();
 
         byte[] tetrisData = new byte[2];
         bool[,] bufferGrid = new bool[10, 20];
@@ -201,7 +207,7 @@ namespace TetrisApp
                     if (receivedIndex == 3)
                     {
                         receivedIndex = 0;
-                        UpdateGridData(receivedData);
+                        if (!UpdateGridData(receivedData)) i++;
                     }
                 }
             }
@@ -209,12 +215,12 @@ namespace TetrisApp
             //Console.WriteLine($"Data={data}, ChangeType={nextChangeType}, TetrisType={nextTetrisType}");
         }
 
-        void UpdateGridData(byte[] buffer)
+        private bool UpdateGridData(byte[] buffer)
         {
             var d1 = buffer[0];
             var col = d1 >> 4;
             if (col > 9)
-                return;
+                return false;
             bufferGrid[col, 0] = (d1 >> 3 & 0b1) == 1;
             bufferGrid[col, 1] = (d1 >> 2 & 0b1) == 1;
             bufferGrid[col, 2] = (d1 >> 1 & 0b1) == 1;
@@ -238,7 +244,7 @@ namespace TetrisApp
             bufferGrid[col, 18] = (d3 >> 1 & 0b1) == 1;
             bufferGrid[col, 19] = (d3 & 0b1) == 1;
             if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
-                return;
+                return true;
             if (col == 6)
             {
                 tetrisData[0] = 0;
@@ -264,6 +270,7 @@ namespace TetrisApp
                     dtLastReceived = DateTime.Now;
                 }
             }
+            return true;
         }
 
         void InitGrids()
@@ -1028,6 +1035,7 @@ namespace TetrisApp
                 x++;
 
             serialPort.Write(new byte[] { (byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)) }, 0, 1);
+            serialPort.BaseStream.Flush();
 
             //Console.WriteLine($"MoveX={x}, Change={change}");
         }
