@@ -163,9 +163,6 @@ namespace TetrisApp
             serialPort = new SerialPort(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             serialPort.DataReceived += OnDataReceived;
 
-            serialPort.WriteTimeout = 1;
-            serialPort.WriteBufferSize = 1;
-
             receivedBuffer = new byte[serialPort.ReadBufferSize];
 
             serialPort.Open();
