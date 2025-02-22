@@ -107,7 +107,7 @@ void handleKeyPress(unsigned long currentTime) {
 	case 3:
 		if (currentTime - lastPressTime >= 30) {
 			keyIndex++;
-			step = keyIndex == KeyCount ? 0 : 1;
+			step = keyIndex >= KeyCount ? 0 : 1;
 		}
 		break;
 	}
