@@ -67,7 +67,6 @@ void loop() {
 			digitalWrite(2, HIGH);
 			delay(50);
 			digitalWrite(2, LOW);
-			delay(30);
 			return;
 		}
 		// 读取数据
@@ -80,7 +79,8 @@ void loop() {
 			digitalWrite(3, HIGH);
 			delay(50);
 			digitalWrite(3, LOW);
-			delay(30);
+			if (i < change - 1)
+				delay(50);
 		}
 		int pin = dir == 0 ? 4 : 5;
 		for (int i = 0;i < move;i++)
@@ -88,7 +88,8 @@ void loop() {
 			digitalWrite(pin, HIGH);
 			delay(50);
 			digitalWrite(pin, LOW);
-			delay(30);
+			if (i < move - 1)
+				delay(50);
 		}
 	}
 }
