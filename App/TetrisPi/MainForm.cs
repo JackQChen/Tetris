@@ -141,6 +141,7 @@ namespace TetrisApp
                 var ftpHandler = new FTPHandler();
                 while (true)
                 {
+                    Thread.Sleep(30000);
                     if (connector.dtLastReceived != DateTime.MinValue && ((DateTime.Now - connector.dtLastReceived).TotalSeconds > 30))
                     {
                         // 保存截图
@@ -159,7 +160,6 @@ namespace TetrisApp
                         connector.Send(0xff);
                         Restart();
                     }
-                    Thread.Sleep(30000);
                 }
             }, TaskCreationOptions.LongRunning);
         }
