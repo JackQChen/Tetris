@@ -142,7 +142,7 @@ namespace TetrisApp
                 while (true)
                 {
                     Thread.Sleep(30000);
-                    if (connector.dtLastReceived != DateTime.MinValue && ((DateTime.Now - connector.dtLastReceived).TotalSeconds > 30))
+                    if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
                     {
                         // 保存截图
                         var imageData = Paint();
@@ -184,7 +184,7 @@ namespace TetrisApp
         {
             for (int i = 0; i < 10; i++)
                 for (int j = 4; j < 20; j++)
-                    allGrids[i, j].show = connector.bufferGrid[i, j];
+                    allGrids[i, j].show = connector.GridData[i, j];
             nextChangeType = tetrisData % 10;
             nextTetrisType = tetrisData / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];

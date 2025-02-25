@@ -10,13 +10,13 @@ namespace TetrisApp
         byte[] receivedData = new byte[3];
         byte[] receivedBuffer = Array.Empty<byte>();
 
-        byte[] tetrisData = new byte[2];
+        byte[] mapperData = new byte[2];
 
-        public bool[,] bufferGrid = new bool[10, 20];
+        public bool[,] GridData = new bool[10, 20];
 
-        public DateTime dtLastReceived = DateTime.MinValue;
+        public DateTime LastUpdatedTime = DateTime.MinValue;
 
-        public event EventHandler<EventArgs> OnColumnData;
+        public event EventHandler<int> OnColumnData;
         public event EventHandler<EventArgs> OnFrameData;
         public event EventHandler<int> OnTetrisData;
 
@@ -66,47 +66,51 @@ namespace TetrisApp
             var col = d1 >> 4;
             if (col > 9)
                 return false;
-            bufferGrid[col, 0] = (d1 >> 3 & 0b1) == 1;
-            bufferGrid[col, 1] = (d1 >> 2 & 0b1) == 1;
-            bufferGrid[col, 2] = (d1 >> 1 & 0b1) == 1;
-            bufferGrid[col, 3] = (d1 & 0b1) == 1;
+            GridData[col, 0] = (d1 >> 3 & 0b1) == 1;
+            GridData[col, 1] = (d1 >> 2 & 0b1) == 1;
+            GridData[col, 2] = (d1 >> 1 & 0b1) == 1;
+            GridData[col, 3] = (d1 & 0b1) == 1;
             var d2 = buffer[1];
-            bufferGrid[col, 4] = (d2 >> 7 & 0b1) == 1;
-            bufferGrid[col, 5] = (d2 >> 6 & 0b1) == 1;
-            bufferGrid[col, 6] = (d2 >> 5 & 0b1) == 1;
-            bufferGrid[col, 7] = (d2 >> 4 & 0b1) == 1;
-            bufferGrid[col, 8] = (d2 >> 3 & 0b1) == 1;
-            bufferGrid[col, 9] = (d2 >> 2 & 0b1) == 1;
-            bufferGrid[col, 10] = (d2 >> 1 & 0b1) == 1;
-            bufferGrid[col, 11] = (d2 & 0b1) == 1;
+            GridData[col, 4] = (d2 >> 7 & 0b1) == 1;
+            GridData[col, 5] = (d2 >> 6 & 0b1) == 1;
+            GridData[col, 6] = (d2 >> 5 & 0b1) == 1;
+            GridData[col, 7] = (d2 >> 4 & 0b1) == 1;
+            GridData[col, 8] = (d2 >> 3 & 0b1) == 1;
+            GridData[col, 9] = (d2 >> 2 & 0b1) == 1;
+            GridData[col, 10] = (d2 >> 1 & 0b1) == 1;
+            GridData[col, 11] = (d2 & 0b1) == 1;
             var d3 = buffer[2];
-            bufferGrid[col, 12] = (d3 >> 7 & 0b1) == 1;
-            bufferGrid[col, 13] = (d3 >> 6 & 0b1) == 1;
-            bufferGrid[col, 14] = (d3 >> 5 & 0b1) == 1;
-            bufferGrid[col, 15] = (d3 >> 4 & 0b1) == 1;
-            bufferGrid[col, 16] = (d3 >> 3 & 0b1) == 1;
-            bufferGrid[col, 17] = (d3 >> 2 & 0b1) == 1;
-            bufferGrid[col, 18] = (d3 >> 1 & 0b1) == 1;
-            bufferGrid[col, 19] = (d3 & 0b1) == 1;
-            if (DateTime.Now - dtLastReceived < TimeSpan.FromSeconds(1))
+            GridData[col, 12] = (d3 >> 7 & 0b1) == 1;
+            GridData[col, 13] = (d3 >> 6 & 0b1) == 1;
+            GridData[col, 14] = (d3 >> 5 & 0b1) == 1;
+            GridData[col, 15] = (d3 >> 4 & 0b1) == 1;
+            GridData[col, 16] = (d3 >> 3 & 0b1) == 1;
+            GridData[col, 17] = (d3 >> 2 & 0b1) == 1;
+            GridData[col, 18] = (d3 >> 1 & 0b1) == 1;
+            GridData[col, 19] = (d3 & 0b1) == 1;
+
+            OnColumnData?.Invoke(this, col);
+
+            if (DateTime.Now - LastUpdatedTime < TimeSpan.FromSeconds(1))
                 return true;
+
             if (col == 6)
             {
-                tetrisData[0] = 0;
-                tetrisData[1] = 0;
+                mapperData[0] = 0;
+                mapperData[1] = 0;
                 var pos = 8;
                 for (int i = 0; i < 2; i++)
                     for (int j = 0; j < 4; j++)
-                        tetrisData[0] |= (byte)((bufferGrid[j + 3, i] ? 1 : 0) << --pos);
+                        mapperData[0] |= (byte)((GridData[j + 3, i] ? 1 : 0) << --pos);
                 pos = 8;
                 for (int i = 0; i < 2; i++)
                     for (int j = 0; j < 4; j++)
-                        tetrisData[1] |= (byte)((bufferGrid[j + 3, i + 2] ? 1 : 0) << --pos);
-                var matchedTetris = Mapper.FirstOrDefault(p => p[0] == tetrisData[0] && p[1] == tetrisData[1]);
+                        mapperData[1] |= (byte)((GridData[j + 3, i + 2] ? 1 : 0) << --pos);
+                var matchedTetris = Mapper.FirstOrDefault(p => p[0] == mapperData[0] && p[1] == mapperData[1]);
                 if (matchedTetris != null)
                 {
                     OnTetrisData?.Invoke(this, matchedTetris[2]);
-                    dtLastReceived = DateTime.Now;
+                    LastUpdatedTime = DateTime.Now;
                 }
             }
             return true;
