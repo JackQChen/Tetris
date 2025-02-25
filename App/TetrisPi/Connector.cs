@@ -17,7 +17,7 @@ namespace TetrisApp
         public DateTime LastUpdatedTime = DateTime.MinValue;
 
         public event EventHandler<int> OnColumnData;
-        public event EventHandler<EventArgs> OnFrameData;
+        public event EventHandler OnFrameData;
         public event EventHandler<int> OnTetrisData;
 
         public bool Init(string portName, int baudRate)
@@ -91,6 +91,9 @@ namespace TetrisApp
 
             OnColumnData?.Invoke(this, col);
 
+            if (col == 9)
+                OnFrameData?.Invoke(this, EventArgs.Empty);
+
             if (DateTime.Now - LastUpdatedTime < TimeSpan.FromSeconds(1))
                 return true;
 
@@ -109,8 +112,8 @@ namespace TetrisApp
                 var matchedTetris = Mapper.FirstOrDefault(p => p[0] == mapperData[0] && p[1] == mapperData[1]);
                 if (matchedTetris != null)
                 {
-                    OnTetrisData?.Invoke(this, matchedTetris[2]);
                     LastUpdatedTime = DateTime.Now;
+                    OnTetrisData?.Invoke(this, matchedTetris[2]);
                 }
             }
             return true;
