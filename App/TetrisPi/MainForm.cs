@@ -169,7 +169,7 @@ namespace TetrisApp
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
 
-            // 初始化串口
+            // 初始化设备
             connector = new Connector();
             connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             connector.OnTetrisData += Connector_OnTetrisData;
