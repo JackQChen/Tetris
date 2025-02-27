@@ -8,7 +8,7 @@ namespace TetrisApp
 
         int receivedIndex = 0;
         byte[] receivedData = new byte[3];
-        byte[] receivedBuffer = new byte[2048];
+        byte[] receivedBuffer = new byte[4096];
 
         byte[] mapperData = new byte[2];
 
@@ -26,12 +26,6 @@ namespace TetrisApp
             {
                 serialPort = new SerialPort(portName, baudRate);
                 serialPort.DataReceived += OnDataReceived;
-
-                serialPort.WriteTimeout = 1;
-                serialPort.WriteBufferSize = 2;
-                serialPort.ReadTimeout = 1;
-                serialPort.ReadBufferSize = 32;
-
                 serialPort.Open();
 
                 return true;
