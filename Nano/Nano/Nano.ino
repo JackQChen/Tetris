@@ -79,7 +79,7 @@ void loop() {
 			digitalWrite(3, HIGH);
 			delay(50);
 			digitalWrite(3, LOW);
-			delay(50);
+			delay(30);
 		}
 		int pin = dir == 0 ? 4 : 5;
 		for (int i = 0;i < move;i++)
@@ -87,7 +87,7 @@ void loop() {
 			digitalWrite(pin, HIGH);
 			delay(50);
 			digitalWrite(pin, LOW);
-			delay(50);
+			delay(30);
 		}
 	}
 }

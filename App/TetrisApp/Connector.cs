@@ -8,7 +8,7 @@ namespace TetrisApp
 
         int receivedIndex = 0;
         byte[] receivedData = new byte[3];
-        byte[] receivedBuffer = Array.Empty<byte>();
+        byte[] receivedBuffer = new byte[2048];
 
         byte[] mapperData = new byte[2];
 
@@ -26,9 +26,11 @@ namespace TetrisApp
             {
                 serialPort = new SerialPort(portName, baudRate);
                 serialPort.DataReceived += OnDataReceived;
-                serialPort.WriteTimeout = 1;
 
-                receivedBuffer = new byte[serialPort.ReadBufferSize];
+                serialPort.WriteTimeout = 1;
+                serialPort.WriteBufferSize = 2;
+                serialPort.ReadTimeout = 1;
+                serialPort.ReadBufferSize = 32;
 
                 serialPort.Open();
 
@@ -91,13 +93,13 @@ namespace TetrisApp
 
             OnColumnData?.Invoke(this, col);
 
-            if (col == 9)
+            if (col == 0)
                 OnFrameData?.Invoke(this, EventArgs.Empty);
 
             if (DateTime.Now - LastUpdatedTime < TimeSpan.FromSeconds(1))
                 return true;
 
-            if (col == 6)
+            if (col == 3)
             {
                 mapperData[0] = 0;
                 mapperData[1] = 0;
@@ -121,7 +123,8 @@ namespace TetrisApp
 
         public void Send(byte data)
         {
-            serialPort.Write(new byte[] { data }, 0, 1);
+            serialPort.BaseStream.WriteByte(data);
+            serialPort.BaseStream.Flush();
         }
 
         public void Dispose()
