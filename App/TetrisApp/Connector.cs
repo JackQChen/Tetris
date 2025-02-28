@@ -12,6 +12,8 @@ namespace TetrisApp
 
         byte[] mapperData = new byte[2];
 
+        int[] gridData = new int[10];
+
         public bool[,] GridData = new bool[10, 20];
 
         public DateTime LastUpdatedTime = DateTime.MinValue;
@@ -56,17 +58,23 @@ namespace TetrisApp
             }
         }
 
-        private bool UpdateGridData(byte[] buffer)
+        private bool UpdateGridData(byte[] data)
         {
-            var d1 = buffer[0];
+            var d1 = data[0];
             var col = d1 >> 4;
             if (col > 9)
                 return false;
+            var d2 = data[1];
+            var d3 = data[2];
+
+            gridData[col] = d1 << 16;
+            gridData[col] |= d2 << 8;
+            gridData[col] |= d3;
+
             GridData[col, 0] = (d1 >> 3 & 0b1) == 1;
             GridData[col, 1] = (d1 >> 2 & 0b1) == 1;
             GridData[col, 2] = (d1 >> 1 & 0b1) == 1;
             GridData[col, 3] = (d1 & 0b1) == 1;
-            var d2 = buffer[1];
             GridData[col, 4] = (d2 >> 7 & 0b1) == 1;
             GridData[col, 5] = (d2 >> 6 & 0b1) == 1;
             GridData[col, 6] = (d2 >> 5 & 0b1) == 1;
@@ -75,7 +83,6 @@ namespace TetrisApp
             GridData[col, 9] = (d2 >> 2 & 0b1) == 1;
             GridData[col, 10] = (d2 >> 1 & 0b1) == 1;
             GridData[col, 11] = (d2 & 0b1) == 1;
-            var d3 = buffer[2];
             GridData[col, 12] = (d3 >> 7 & 0b1) == 1;
             GridData[col, 13] = (d3 >> 6 & 0b1) == 1;
             GridData[col, 14] = (d3 >> 5 & 0b1) == 1;
