@@ -79,7 +79,7 @@ namespace TetrisApp
         SceneOffset currentOffset = null;
         //下落速度
         const int dropSpeed = 5;
-        const int timerInterval = 10;
+        const int timerInterval = 50;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -143,12 +143,12 @@ namespace TetrisApp
                 while (true)
                 {
                     Thread.Sleep(30000);
-                    if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
-                    {
-                        // 重置
-                        connector.Send(0xff);
-                        Restart();
-                    }
+                    //if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
+                    //{
+                    //    // 重置
+                    //    connector.Send(0xff);
+                    //    Restart();
+                    //}
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -161,16 +161,24 @@ namespace TetrisApp
             connector = new Connector();
             connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             connector.OnTetrisData += Connector_OnTetrisData;
+            connector.OnFrameData += Connector_OnFrameData;
 
             base.OnLoad(e);
             Restart();
         }
 
+        bool isFrameReady = false;
+
+        private void Connector_OnFrameData(object? sender, EventArgs e)
+        {
+            isFrameReady = true;
+        }
+
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            for (int i = 0; i < 10; i++)
-                for (int j = 4; j < 20; j++)
-                    allGrids[i, j].show = connector.GridData[i, j];
+            //for (int i = 0; i < 10; i++)
+            //    for (int j = 0; j < 20; j++)
+            //        allGrids[i, j].show = connector.GetGridStatus(i, j);
             nextChangeType = tetrisData % 10;
             nextTetrisType = tetrisData / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
@@ -1165,7 +1173,20 @@ namespace TetrisApp
             {
                 for (int j = 0; j < 20; j++)
                 {
-                    if (connector.GridData[i, j])
+                    if (connector.GetMaxRow() == j)
+                        g.FillRectangle(Brushes.Red, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+
+                    var rect = connector.GetRectangle();
+                    if (rect.Top == j)
+                        g.FillRectangle(Brushes.DarkGreen, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+                    if (rect.Bottom == j)
+                        g.FillRectangle(Brushes.LightGreen, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+                    if (rect.Left == i)
+                        g.FillRectangle(Brushes.DeepSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+                    if (rect.Right == i)
+                        g.FillRectangle(Brushes.LightSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+
+                    if (connector.GetGridStatus(i, j))
                         g.FillRectangle(showBrush, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
                 }
             }

@@ -10,13 +10,12 @@ namespace TetrisApp
         byte[] receivedData = new byte[3];
         byte[] receivedBuffer = new byte[4096];
 
-        byte[] mapperData = new byte[2];
-
         int[] gridData = new int[10];
 
-        public bool[,] GridData = new bool[10, 20];
+        int maxRow = 0;
+        Rectangle rectGrid;
 
-        public DateTime LastUpdatedTime = DateTime.MinValue;
+        int lastTetris = -1;
 
         public event EventHandler OnFrameData;
         public event EventHandler<int> OnColumnData;
@@ -64,62 +63,102 @@ namespace TetrisApp
             var col = d1 >> 4;
             if (col > 9)
                 return false;
+
             var d2 = data[1];
             var d3 = data[2];
 
-            gridData[col] = d1 << 16;
+            gridData[col] = (d1 & 0b1111) << 16;
             gridData[col] |= d2 << 8;
             gridData[col] |= d3;
 
-            GridData[col, 0] = (d1 >> 3 & 0b1) == 1;
-            GridData[col, 1] = (d1 >> 2 & 0b1) == 1;
-            GridData[col, 2] = (d1 >> 1 & 0b1) == 1;
-            GridData[col, 3] = (d1 & 0b1) == 1;
-            GridData[col, 4] = (d2 >> 7 & 0b1) == 1;
-            GridData[col, 5] = (d2 >> 6 & 0b1) == 1;
-            GridData[col, 6] = (d2 >> 5 & 0b1) == 1;
-            GridData[col, 7] = (d2 >> 4 & 0b1) == 1;
-            GridData[col, 8] = (d2 >> 3 & 0b1) == 1;
-            GridData[col, 9] = (d2 >> 2 & 0b1) == 1;
-            GridData[col, 10] = (d2 >> 1 & 0b1) == 1;
-            GridData[col, 11] = (d2 & 0b1) == 1;
-            GridData[col, 12] = (d3 >> 7 & 0b1) == 1;
-            GridData[col, 13] = (d3 >> 6 & 0b1) == 1;
-            GridData[col, 14] = (d3 >> 5 & 0b1) == 1;
-            GridData[col, 15] = (d3 >> 4 & 0b1) == 1;
-            GridData[col, 16] = (d3 >> 3 & 0b1) == 1;
-            GridData[col, 17] = (d3 >> 2 & 0b1) == 1;
-            GridData[col, 18] = (d3 >> 1 & 0b1) == 1;
-            GridData[col, 19] = (d3 & 0b1) == 1;
-
             OnColumnData?.Invoke(this, col);
 
-            if (col == 0)
+            if (col == 9)
+            {
                 OnFrameData?.Invoke(this, EventArgs.Empty);
 
-            if (DateTime.Now - LastUpdatedTime < TimeSpan.FromSeconds(1))
-                return true;
+                var combined = 0;
+                for (int i = 0; i < gridData.Length; i++)
+                    combined |= gridData[i];
 
-            if (col == 3)
-            {
-                mapperData[0] = 0;
-                mapperData[1] = 0;
-                var pos = 8;
-                for (int i = 0; i < 2; i++)
-                    for (int j = 0; j < 4; j++)
-                        mapperData[0] |= (byte)((GridData[j + 3, i] ? 1 : 0) << --pos);
-                pos = 8;
-                for (int i = 0; i < 2; i++)
-                    for (int j = 0; j < 4; j++)
-                        mapperData[1] |= (byte)((GridData[j + 3, i + 2] ? 1 : 0) << --pos);
-                var matchedTetris = Mapper.FirstOrDefault(p => p[0] == mapperData[0] && p[1] == mapperData[1]);
-                if (matchedTetris != null)
+                var range = GetRange(combined);
+                maxRow = range.Item1 == 0 ? range.Item2 : -1;
+
+                combined &= 0x00ffffff << (maxRow + 1);
+                range = GetRange(combined);
+                var startRow = range.Item1;
+                var endRow = range.Item2;
+
+                combined = 0;
+                for (int i = 0; i < gridData.Length; i++)
                 {
-                    LastUpdatedTime = DateTime.Now;
-                    OnTetrisData?.Invoke(this, matchedTetris[2]);
+                    if (((0x00ffffff << (maxRow + 1)) & gridData[i]) > 0)
+                        combined |= 1 << i;
+                }
+                range = GetRange(combined);
+                var startColumn = range.Item1;
+                var endColumn = range.Item2;
+
+                rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
+                var tetris = MatchTetris();
+                if (lastTetris == -1 && tetris != -1)
+                    OnTetrisData?.Invoke(this, tetris);
+                lastTetris = tetris;
+            }
+
+            return true;
+        }
+
+        Tuple<int, int> GetRange(int data)
+        {
+            var start = -1;
+            var end = -1;
+
+            for (int i = 0; i < 20; i++)
+            {
+                if ((data >> i & 0b1) == 1)
+                {
+                    if (start == -1)
+                        start = i;
+                    end = i;
+                }
+                else
+                {
+                    if (start != -1)
+                        break;
                 }
             }
-            return true;
+            return Tuple.Create(start, end);
+        }
+
+        int MatchTetris()
+        {
+            if (rectGrid.Left == -1 && rectGrid.Right == -1 && rectGrid.Top == -1 && rectGrid.Bottom == -1)
+                return -1;
+            int w = rectGrid.Width + 1, h = rectGrid.Height + 1;
+            if (w == 2 && h == 2)
+                return 30;
+            return -1;
+        }
+
+        public int GetMaxRow()
+        {
+            return 19 - maxRow;
+        }
+
+        public Rectangle GetRectangle()
+        {
+            return Rectangle.FromLTRB(9 - rectGrid.Left, 19 - rectGrid.Top, 9 - rectGrid.Right, 19 - rectGrid.Bottom);
+        }
+
+        public Tuple<int, int> GetColumnRange()
+        {
+            return Tuple.Create(9 - 0, 9 - 0);
+        }
+
+        public bool GetGridStatus(int column, int row)
+        {
+            return (gridData[9 - column] >> (19 - row) & 0b1) == 1;
         }
 
         public void Send(byte data)

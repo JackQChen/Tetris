@@ -30,7 +30,7 @@ void loop() {
 	if (channelRead(columnIndex, A0) > thresholdHigh)
 	{
 		byte data[3] = { 0, 0, 0 };
-		data[0] = (9 - columnIndex) << 4;
+		data[0] = columnIndex << 4;
 		analogRead(A1); //等待ADC稳定
 		data[0] |= (channelRead(5, A1) < thresholdLow) << 3;
 		data[0] |= (channelRead(4, A1) < thresholdLow) << 2;
