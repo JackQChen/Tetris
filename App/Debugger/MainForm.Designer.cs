@@ -28,20 +28,34 @@
         /// </summary>
         private void InitializeComponent()
         {
+            txtData = new TextBox();
             SuspendLayout();
+            // 
+            // txtData
+            // 
+            txtData.Dock = DockStyle.Bottom;
+            txtData.Location = new Point(0, 427);
+            txtData.Name = "txtData";
+            txtData.Size = new Size(800, 23);
+            txtData.TabIndex = 0;
+            txtData.TextChanged += txtData_TextChanged;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(txtData);
             DoubleBuffered = true;
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "MainForm";
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
+
+        private TextBox txtData;
     }
 }

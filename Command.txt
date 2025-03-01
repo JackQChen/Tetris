@@ -33,5 +33,5 @@ amixer -c 1 set 'PCM' 90%
 alsamixer -> F6 -> bcm2835 Headphones -> 90
 
 # 使用cvlc播放
-在文件/usr/bin/vlc中将geteuid修改为getppid
+# 在文件/usr/bin/vlc中将geteuid修改为getppid
 cvlc --aout=alsa --alsa-audio-device=hw:1,0 --random --loop /root/Music/

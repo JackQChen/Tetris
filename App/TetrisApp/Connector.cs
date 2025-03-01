@@ -1,3 +1,4 @@
+﻿using System.Diagnostics;
 using System.IO.Ports;
 
 namespace TetrisApp
@@ -15,7 +16,7 @@ namespace TetrisApp
         int maxRow = 0;
         Rectangle rectGrid;
 
-        int lastTetris = -1;
+        bool readyToTrigger = false;
 
         public event EventHandler OnFrameData;
         public event EventHandler<int> OnColumnData;
@@ -100,10 +101,26 @@ namespace TetrisApp
                 var endColumn = range.Item2;
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
+
+                if (rectGrid.Left == -1 && rectGrid.Right == -1 && rectGrid.Top == -1 && rectGrid.Bottom == -1)
+                {
+                    readyToTrigger = true;
+                    return true;
+                }
+
                 var tetris = MatchTetris();
-                if (lastTetris == -1 && tetris != -1)
+
+                if (readyToTrigger && tetris != -1)
+                {
+
+                    Debug.WriteLine($"tetris = {tetris}");
+                    for (int i = 0; i < gridData.Length; i++)
+                        Debug.Write($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                    Debug.WriteLine(Environment.NewLine + "===========================");
+
                     OnTetrisData?.Invoke(this, tetris);
-                lastTetris = tetris;
+                    readyToTrigger = false;
+                }
             }
 
             return true;
@@ -133,12 +150,53 @@ namespace TetrisApp
 
         int MatchTetris()
         {
-            if (rectGrid.Left == -1 && rectGrid.Right == -1 && rectGrid.Top == -1 && rectGrid.Bottom == -1)
-                return -1;
             int w = rectGrid.Width + 1, h = rectGrid.Height + 1;
             if (w == 2 && h == 2)
-                return 30;
+            {
+                if (CheckCells(0b1111)) return 30;
+            }
+            else if (w == 1 && h == 4)
+                return 0;
+            else if (w == 4 && h == 1)
+                return 1;
+            else if (w == 2 && h == 3)
+            {
+                if (CheckCells(0b101101)) return 40; // S90
+                if (CheckCells(0b011110)) return 61; // Z90
+                if (CheckCells(0b101011)) return 20; // L0
+                if (CheckCells(0b110101)) return 22; // L180
+                if (CheckCells(0b010111)) return 10; // J0
+                if (CheckCells(0b111010)) return 12; // J180
+                if (CheckCells(0b011101)) return 51; // T90
+                if (CheckCells(0b101110)) return 53; // T270
+            }
+            else if (w == 3 && h == 2)
+            {
+                if (CheckCells(0b011110)) return 41; // S0
+                if (CheckCells(0b110011)) return 60; // Z0
+                if (CheckCells(0b111100)) return 21; // L90
+                if (CheckCells(0b001111)) return 23; // L270
+                if (CheckCells(0b100111)) return 11; // J90
+                if (CheckCells(0b111001)) return 13; // J270
+                if (CheckCells(0b111010)) return 50; // T0
+                if (CheckCells(0b010111)) return 52; // T180
+            }
             return -1;
+        }
+
+        bool CheckCells(int expected)
+        {
+            int width = rectGrid.Width + 1, height = rectGrid.Height + 1;
+            for (int row = 0; row < height; row++)
+            {
+                for (int column = 0; column < width; column++)
+                {
+                    var expectedValue = expected >> (row * width + column) & 0b1;
+                    if ((gridData[rectGrid.X + column] >> (rectGrid.Y + row) & 0b1) != expectedValue)
+                        return false;
+                }
+            }
+            return true;
         }
 
         public int GetMaxRow()
@@ -156,7 +214,7 @@ namespace TetrisApp
             return Tuple.Create(9 - 0, 9 - 0);
         }
 
-        public bool GetGridStatus(int column, int row)
+        public bool GetCellStatus(int column, int row)
         {
             return (gridData[9 - column] >> (19 - row) & 0b1) == 1;
         }

@@ -79,7 +79,7 @@ namespace TetrisApp
         SceneOffset currentOffset = null;
         //下落速度
         const int dropSpeed = 5;
-        const int timerInterval = 50;
+        const int timerInterval = 10;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -161,24 +161,16 @@ namespace TetrisApp
             connector = new Connector();
             connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             connector.OnTetrisData += Connector_OnTetrisData;
-            connector.OnFrameData += Connector_OnFrameData;
 
             base.OnLoad(e);
             Restart();
-        }
-
-        bool isFrameReady = false;
-
-        private void Connector_OnFrameData(object? sender, EventArgs e)
-        {
-            isFrameReady = true;
         }
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
             //for (int i = 0; i < 10; i++)
             //    for (int j = 0; j < 20; j++)
-            //        allGrids[i, j].show = connector.GetGridStatus(i, j);
+            //        allGrids[i, j].show = connector.GetCellStatus(i, j);
             nextChangeType = tetrisData % 10;
             nextTetrisType = tetrisData / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
@@ -648,7 +640,6 @@ namespace TetrisApp
                 //遍历所有变形
                 changeType = (changeType + 1) % changeNum[curTetrisType];
             }
-
 
             var offset = tetrisOffset[curTetrisType][R_ChangeType];
             int moveX = R_X - offset.X1 - currentRunGridX;
@@ -1186,7 +1177,7 @@ namespace TetrisApp
                     if (rect.Right == i)
                         g.FillRectangle(Brushes.LightSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
 
-                    if (connector.GetGridStatus(i, j))
+                    if (connector.GetCellStatus(i, j))
                         g.FillRectangle(showBrush, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
                 }
             }
