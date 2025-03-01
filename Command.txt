@@ -29,13 +29,9 @@ screen -r 1
 exit
 
 # 修改音量
-alsamixer -> F6 -> bcm2835 -> 100
+amixer -c 1 set 'PCM' 90%
+alsamixer -> F6 -> bcm2835 Headphones -> 90
 
-# 安装远程桌面
-sudo apt-get install xrdp
-
-# 安装MySQL
-sudo apt-get install mysql-server
-
-# 运行
-dotnet Ace.Web.Host.dll --server.urls "http://*:5000"
+# 使用cvlc播放
+在文件/usr/bin/vlc中将geteuid修改为getppid
+cvlc --aout=alsa --alsa-audio-device=hw:1,0 --random --loop /root/Music/
