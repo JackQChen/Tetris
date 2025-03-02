@@ -37,13 +37,6 @@
             }
         }
 
-        void UpdateUI(int column, int data)
-        {
-            for (int i = 0; i < 20; i++)
-                pixelData[19 - i, 9 - column] = (data >> i & 0b1) == 1;
-            this.Invoke(new Action(() => this.Invalidate())); // 刷新窗体
-        }
-
         bool isPlay;
         int playIndex;
 
@@ -74,10 +67,18 @@
                 playIndex = 0;
             else if (playIndex < 0)
                 playIndex = logs.Length - 1;
-            var dataArray = logs[playIndex].Split(',');
-            for (int i = 0; i < dataArray.Length; i++)
-                UpdateUI(i, Convert.ToInt32(dataArray[i]));
-            this.Text = $"Index : {playIndex}";
+            var log = logs[playIndex];
+            if (char.IsLetter(log[0]))
+                this.Text = log;
+            else
+            {
+                var dataArray = log.Split(',');
+                for (int col = 0; col < dataArray.Length; col++)
+                    for (int row = 0; row < 20; row++)
+                        pixelData[19 - row, 9 - col] = (Convert.ToInt32(dataArray[col]) >> row & 0b1) == 1;
+                this.Invalidate();
+                this.Text = $"Frame: {playIndex}";
+            }
             if (isPlay)
                 playIndex++;
         }
