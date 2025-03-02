@@ -110,7 +110,7 @@ namespace TetrisApp
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
-                if (rectGrid.Top - maxRow <= 3)
+                if (rectGrid.Top != -1 && rectGrid.Top - maxRow <= 2)
                 {
                     readyToTrigger = true;
                     return true;
