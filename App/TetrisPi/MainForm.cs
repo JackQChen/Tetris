@@ -84,7 +84,7 @@ namespace TetrisApp
         SceneOffset currentOffset = null;
         //下落速度
         const int dropSpeed = 5;
-        const int timerInterval = 10;
+        const int timerInterval = 1;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -138,29 +138,29 @@ namespace TetrisApp
             // 自动重置
             Task.Factory.StartNew(() =>
             {
-                var ftpHandler = new FTPHandler();
-                while (true)
-                {
-                    Thread.Sleep(30000);
-                    if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
-                    {
-                        // 保存截图
-                        var imageData = Paint();
-                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-                        if (!Directory.Exists(dir))
-                            Directory.CreateDirectory(dir);
-                        var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
-                        File.WriteAllBytes(path, imageData);
-                        // 同步文件
-                        Task.Run(() =>
-                        {
-                            ftpHandler.SyncFiles();
-                        });
-                        // 重置
-                        connector.Send(0xff);
-                        Restart();
-                    }
-                }
+                //var ftpHandler = new FTPHandler();
+                //while (true)
+                //{
+                //    Thread.Sleep(30000);
+                //    if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
+                //    {
+                //        // 保存截图
+                //        var imageData = Paint();
+                //        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+                //        if (!Directory.Exists(dir))
+                //            Directory.CreateDirectory(dir);
+                //        var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
+                //        File.WriteAllBytes(path, imageData);
+                //        // 同步文件
+                //        Task.Run(() =>
+                //        {
+                //            ftpHandler.SyncFiles();
+                //        });
+                //        // 重置
+                //        connector.Send(0xff);
+                //        Restart();
+                //    }
+                //}
             }, TaskCreationOptions.LongRunning);
         }
 
@@ -175,16 +175,22 @@ namespace TetrisApp
             connector.OnTetrisData += Connector_OnTetrisData;
 
             player = new AudioPlayer();
-            player.Init(3);
+            //player.Init(3);
 
             Restart();
         }
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
+            //for (int i = 0; i < 10; i++)
+            //    for (int j = 0; j < 20; j++)
+            //        allGrids[i, j].show = connector.GetCellStatus(i, j); 
+            int[] array = new int[10];
             for (int i = 0; i < 10; i++)
-                for (int j = 4; j < 20; j++)
-                    allGrids[i, j].show = connector.GridData[i, j];
+                for (int j = 0; j < 20; j++)
+                    array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
+            LoggerAI.Log(string.Join(',', array));
+            LoggerAI.Log($"Tetris = {tetrisData}");
             nextChangeType = tetrisData % 10;
             nextTetrisType = tetrisData / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
@@ -651,7 +657,6 @@ namespace TetrisApp
                 changeType = (changeType + 1) % changeNum[curTetrisType];
             }
 
-
             var offset = tetrisOffset[curTetrisType][R_ChangeType];
             int moveX = R_X - offset.X1 - currentRunGridX;
             foreach (var g in runGrids)//还原显示状态
@@ -953,9 +958,7 @@ namespace TetrisApp
                 x++;
 
             connector.Send((byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)));
-            var i = new Random().Next(0, 10);
-            if (i < 3)
-                player.Play($"{i}.wav");
+            Logger.Log($"X = {x}, C = {change}");
         }
 
         //正在下落
