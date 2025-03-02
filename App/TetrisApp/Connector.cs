@@ -235,6 +235,8 @@ namespace TetrisApp
 
         public void Send(byte data)
         {
+            if (data == 0)
+                return;
             serialPort.BaseStream.WriteByte(data);
             serialPort.BaseStream.Flush();
         }
