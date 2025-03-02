@@ -72,6 +72,9 @@
                     isPlay = false;
                     playIndex++;
                     break;
+                case Keys.Tab:
+                    logs = File.ReadAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logAI.txt"));
+                    break;
                 default: break;
             }
         }

@@ -78,7 +78,7 @@ namespace TetrisApp
         SceneOffset currentOffset = null;
         //下落速度
         const int dropSpeed = 5;
-        const int timerInterval = 10;
+        const int timerInterval = 1;
         //当前的选型
         int curChangeType;
         int curTetrisType;
@@ -175,6 +175,7 @@ namespace TetrisApp
                 for (int j = 0; j < 20; j++)
                     array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
             LoggerAI.Log(string.Join(',', array));
+            LoggerAI.Log($"Tetris = {tetrisData}");
             nextChangeType = tetrisData % 10;
             nextTetrisType = tetrisData / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
