@@ -28,34 +28,30 @@
         /// </summary>
         private void InitializeComponent()
         {
-            txtData = new TextBox();
+            components = new System.ComponentModel.Container();
+            timer = new System.Windows.Forms.Timer(components);
             SuspendLayout();
             // 
-            // txtData
+            // timer
             // 
-            txtData.Dock = DockStyle.Bottom;
-            txtData.Location = new Point(0, 427);
-            txtData.Name = "txtData";
-            txtData.Size = new Size(800, 23);
-            txtData.TabIndex = 0;
-            txtData.TextChanged += txtData_TextChanged;
+            timer.Enabled = true;
+            timer.Tick += timer_Tick;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(txtData);
             DoubleBuffered = true;
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "MainForm";
+            KeyDown += MainForm_KeyDown;
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
-        private TextBox txtData;
+        private System.Windows.Forms.Timer timer;
     }
 }

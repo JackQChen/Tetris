@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO.Ports;
+using System.Text;
 
 namespace TetrisApp
 {
@@ -100,6 +101,11 @@ namespace TetrisApp
                 var startColumn = range.Item1;
                 var endColumn = range.Item2;
 
+                var strLog = new StringBuilder();
+                for (int i = 0; i < gridData.Length; i++)
+                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                Logger.Log(strLog.ToString());
+
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
                 if (rectGrid.Left == -1 && rectGrid.Right == -1 && rectGrid.Top == -1 && rectGrid.Bottom == -1)
@@ -112,12 +118,6 @@ namespace TetrisApp
 
                 if (readyToTrigger && tetris != -1)
                 {
-
-                    Debug.WriteLine($"tetris = {tetris}");
-                    for (int i = 0; i < gridData.Length; i++)
-                        Debug.Write($"{(i == 0 ? "" : ",")}{gridData[i]}");
-                    Debug.WriteLine(Environment.NewLine + "===========================");
-
                     OnTetrisData?.Invoke(this, tetris);
                     readyToTrigger = false;
                 }
