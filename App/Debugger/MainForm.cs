@@ -5,7 +5,7 @@
 
         private const int rows = 20; // 行数
         private const int cols = 10; // 列数
-        private bool[,] pixelData = new bool[rows, cols]; // 存储像素状态
+        private bool[,] gridData = new bool[rows, cols]; // 存储像素状态
 
         public MainForm()
         {
@@ -30,8 +30,20 @@
             {
                 for (int j = 0; j < cols; j++)
                 {
-                    Brush brush = pixelData[i, j] ? Brushes.Black : Brushes.White; // 黑色表示亮，白色表示灭
-                    g.FillRectangle(brush, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+                    if (maxRow == 19 - i)
+                        g.FillRectangle(Brushes.Red, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+                    if (rectGrid.Top == 19 - i)
+                        g.FillRectangle(Brushes.DarkGreen, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+                    if (rectGrid.Bottom == 19 - i)
+                        g.FillRectangle(Brushes.LightGreen, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+                    if (rectGrid.Left == 9 - j)
+                        g.FillRectangle(Brushes.DeepSkyBlue, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+                    if (rectGrid.Right == 9 - j)
+                        g.FillRectangle(Brushes.LightSkyBlue, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+
+                    if (gridData[i, j])
+                        g.FillRectangle(Brushes.Black, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+
                     g.DrawRectangle(Pens.Gray, j * cellWidth, i * cellHeight, cellWidth, cellHeight);
                 }
             }
@@ -39,6 +51,9 @@
 
         bool isPlay;
         int playIndex;
+
+        int maxRow;
+        Rectangle rectGrid;
 
         string[] logs = File.ReadAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"));
 
@@ -72,15 +87,60 @@
                 this.Text = log;
             else
             {
-                var dataArray = log.Split(',');
+                var dataArray = log.Split(',').Select(int.Parse).ToArray();
+                var combined = 0;
+                for (int i = 0; i < dataArray.Length; i++)
+                    combined |= dataArray[i];
+
+                var range = GetRange(combined);
+                maxRow = range.Item1 == 0 ? range.Item2 : -1;
+
+                combined &= 0x00ffffff << (maxRow + 1);
+                range = GetRange(combined);
+                var startRow = range.Item1;
+                var endRow = range.Item2;
+
+                combined = 0;
+                for (int i = 0; i < dataArray.Length; i++)
+                {
+                    if (((0x00ffffff << (maxRow + 1)) & dataArray[i]) > 0)
+                        combined |= 1 << i;
+                }
+                range = GetRange(combined);
+                var startColumn = range.Item1;
+                var endColumn = range.Item2;
+                rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
+
                 for (int col = 0; col < dataArray.Length; col++)
                     for (int row = 0; row < 20; row++)
-                        pixelData[19 - row, 9 - col] = (Convert.ToInt32(dataArray[col]) >> row & 0b1) == 1;
+                        gridData[19 - row, 9 - col] = (dataArray[col] >> row & 0b1) == 1;
                 this.Invalidate();
                 this.Text = $"Frame: {playIndex}";
             }
             if (isPlay)
                 playIndex++;
+        }
+
+        Tuple<int, int> GetRange(int data)
+        {
+            var start = -1;
+            var end = -1;
+
+            for (int i = 0; i < 20; i++)
+            {
+                if ((data >> i & 0b1) == 1)
+                {
+                    if (start == -1)
+                        start = i;
+                    end = i;
+                }
+                else
+                {
+                    if (start != -1)
+                        break;
+                }
+            }
+            return Tuple.Create(start, end);
         }
     }
 }

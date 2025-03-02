@@ -16,7 +16,6 @@ namespace TetrisApp
         int maxRow = 0;
         Rectangle rectGrid;
 
-        int lastMaxRow = 0;
         bool readyToTrigger = false;
 
         int tetrisIndex = 0;
@@ -111,10 +110,9 @@ namespace TetrisApp
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
-                if (lastMaxRow != maxRow)
+                if (rectGrid.Top - maxRow <= 3)
                 {
                     readyToTrigger = true;
-                    lastMaxRow = maxRow;
                     return true;
                 }
 
