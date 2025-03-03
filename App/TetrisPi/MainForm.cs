@@ -116,6 +116,7 @@ namespace TetrisApp
         Connector connector;
         AudioPlayer player;
         bool isWindows = false;
+        DateTime lastUpdatedTime = DateTime.Now;
 
         Font font;
 
@@ -139,28 +140,29 @@ namespace TetrisApp
             Task.Factory.StartNew(() =>
             {
                 //var ftpHandler = new FTPHandler();
-                //while (true)
-                //{
-                //    Thread.Sleep(30000);
-                //    if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
-                //    {
-                //        // 保存截图
-                //        var imageData = Paint();
-                //        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-                //        if (!Directory.Exists(dir))
-                //            Directory.CreateDirectory(dir);
-                //        var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
-                //        File.WriteAllBytes(path, imageData);
-                //        // 同步文件
-                //        Task.Run(() =>
-                //        {
-                //            ftpHandler.SyncFiles();
-                //        });
-                //        // 重置
-                //        connector.Send(0xff);
-                //        Restart();
-                //    }
-                //}
+                while (true)
+                {
+                    Thread.Sleep(10000);
+                    if ((DateTime.Now - lastUpdatedTime).TotalSeconds > 10)
+                    {
+                        Environment.Exit(0);
+                        //// 保存截图
+                        //var imageData = Paint();
+                        //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+                        //if (!Directory.Exists(dir))
+                        //    Directory.CreateDirectory(dir);
+                        //var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
+                        //File.WriteAllBytes(path, imageData);
+                        //// 同步文件
+                        //Task.Run(() =>
+                        //{
+                        //    ftpHandler.SyncFiles();
+                        //});
+                        //// 重置
+                        //connector.Send(0xff);
+                        //Restart();
+                    }
+                }
             }, TaskCreationOptions.LongRunning);
         }
 
@@ -185,6 +187,7 @@ namespace TetrisApp
             //for (int i = 0; i < 10; i++)
             //    for (int j = 0; j < 20; j++)
             //        allGrids[i, j].show = connector.GetCellStatus(i, j); 
+            lastUpdatedTime = DateTime.Now;
             int[] array = new int[10];
             for (int i = 0; i < 10; i++)
                 for (int j = 0; j < 20; j++)

@@ -17,9 +17,9 @@ namespace TetrisApp
         int maxRow = 0;
         Rectangle rectGrid;
 
+        int lastMaxRow = 0;
         bool readyToTrigger = false;
 
-        int tetrisIndex = 0;
         Dictionary<int, int> tetrisCounts = new Dictionary<int, int>();
 
         public event EventHandler OnFrameData;
@@ -111,9 +111,10 @@ namespace TetrisApp
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
-                if (rectGrid.Top != -1 && rectGrid.Top - maxRow <= 2)
+                if (lastMaxRow != maxRow && rectGrid.Top == -1)
                 {
                     readyToTrigger = true;
+                    lastMaxRow = maxRow;
                     return true;
                 }
 
@@ -125,15 +126,13 @@ namespace TetrisApp
                         tetrisCounts[tetris]++;
                     else
                         tetrisCounts[tetris] = 1;
-                    tetrisIndex++;
-                    if (tetrisIndex > 2)
+
+                    if (tetrisCounts[tetris] > 1)
                     {
-                        tetrisIndex = 0;
-                        tetris = tetrisCounts.OrderByDescending(kv => kv.Value).First().Key;
+                        readyToTrigger = false;
                         tetrisCounts.Clear();
                         Logger.Log($"Tetris = {tetris}");
                         OnTetrisData?.Invoke(this, tetris);
-                        readyToTrigger = false;
                     }
                 }
             }
