@@ -5,6 +5,12 @@ const int thresholdHigh = 3 * 1024 / 5, thresholdLow = 1 * 1024 / 5; //阈值
 // 全局变量
 int columnIndex = 0; // 当前列位置
 
+int step = 0; // 按键状态
+unsigned long lastPressTime; //上次按键时间
+
+int keyIndex = -1, KeyCount = 0;
+int keyArray[10];
+
 void setup() {
 	ADCSRA = (ADCSRA & 0xF8) | 0x02; // 设置分频器
 	Serial.begin(115200); // 初始化串口通信
@@ -60,35 +66,53 @@ void loop() {
 	}
 
 	// 检查串口是否接收到数据
-	if (Serial.available() > 0) {
+	if (step == 0 && Serial.available() > 0) {
 		byte data = Serial.read();
-		if (data == 0xff)
-		{
-			digitalWrite(2, HIGH);
-			delay(50);
-			digitalWrite(2, LOW);
-			delay(50);
+
+		if (data == 0)
 			return;
-		}
-		// 读取数据
+
 		int change = (data >> 4) & 0b1111;
 		int dir = (data >> 3) & 0b1;
 		int move = data & 0b111;
 
-		for (int i = 0;i < change;i++)
-		{
-			digitalWrite(3, HIGH);
-			delay(50);
-			digitalWrite(3, LOW);
-			delay(50);
+		keyIndex = 0;
+		KeyCount = change + move;
+
+		for (int i = 0; i < change; i++) {
+			keyArray[keyIndex++] = 3;
 		}
+
 		int pin = dir == 0 ? 4 : 5;
-		for (int i = 0;i < move;i++)
-		{
-			digitalWrite(pin, HIGH);
-			delay(50);
-			digitalWrite(pin, LOW);
-			delay(50);
+		for (int i = 0; i < move; i++) {
+			keyArray[keyIndex++] = pin;
 		}
+
+		keyIndex = 0;
+		step = 1;
+	}
+	handleKeyPress(millis());
+}
+
+void handleKeyPress(unsigned long currentTime) {
+	switch (step) {
+	case 1:
+		digitalWrite(keyArray[keyIndex], HIGH);
+		lastPressTime = currentTime;
+		step = 2;
+		break;
+	case 2:
+		if (currentTime - lastPressTime > 50) {
+			digitalWrite(keyArray[keyIndex], LOW);
+			lastPressTime = currentTime;
+			step = 3;
+		}
+		break;
+	case 3:
+		if (currentTime - lastPressTime > 30) {
+			keyIndex++;
+			step = keyIndex >= KeyCount ? 0 : 1;
+		}
+		break;
 	}
 }

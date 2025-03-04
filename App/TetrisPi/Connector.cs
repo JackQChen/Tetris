@@ -17,8 +17,8 @@ namespace TetrisApp
         int maxRow = 0;
         Rectangle rectGrid;
 
-        int lastMaxRow = 0;
-        bool readyToTrigger = false;
+        int lastMaxRow = -1;
+        bool readyToTrigger = true;
 
         Dictionary<int, int> tetrisCounts = new Dictionary<int, int>();
 
