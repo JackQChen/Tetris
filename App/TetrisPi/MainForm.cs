@@ -146,13 +146,13 @@ namespace TetrisApp
                     if ((DateTime.Now - lastUpdatedTime).TotalSeconds > 10)
                     {
                         Environment.Exit(0);
-                        //// 保存截图
-                        //var imageData = Paint();
-                        //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-                        //if (!Directory.Exists(dir))
-                        //    Directory.CreateDirectory(dir);
-                        //var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
-                        //File.WriteAllBytes(path, imageData);
+                        // 保存截图
+                        var imageData = Paint();
+                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+                        var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
+                        File.WriteAllBytes(path, imageData);
                         //// 同步文件
                         //Task.Run(() =>
                         //{
@@ -184,9 +184,9 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            var bottom = connector.GetRectangle().Bottom + 1;
+            var maxRow = connector.GetMaxRow() - 1;
             for (int i = 0; i < 10; i++)
-                for (int j = bottom; j < 20; j++)
+                for (int j = maxRow; j < 20; j++)
                     allGrids[i, j].show = connector.GetCellStatus(i, j);
             lastUpdatedTime = DateTime.Now;
             int[] array = new int[10];

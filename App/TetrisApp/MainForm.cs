@@ -167,9 +167,9 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            var bottom = connector.GetRectangle().Bottom + 1;
+            var maxRow = connector.GetMaxRow() - 1;
             for (int i = 0; i < 10; i++)
-                for (int j = bottom; j < 20; j++)
+                for (int j = maxRow; j < 20; j++)
                     allGrids[i, j].show = connector.GetCellStatus(i, j);
             int[] array = new int[10];
             for (int i = 0; i < 10; i++)
