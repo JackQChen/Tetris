@@ -184,9 +184,10 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            //for (int i = 0; i < 10; i++)
-            //    for (int j = 0; j < 20; j++)
-            //        allGrids[i, j].show = connector.GetCellStatus(i, j); 
+            var bottom = connector.GetRectangle().Bottom + 1;
+            for (int i = 0; i < 10; i++)
+                for (int j = bottom; j < 20; j++)
+                    allGrids[i, j].show = connector.GetCellStatus(i, j);
             lastUpdatedTime = DateTime.Now;
             int[] array = new int[10];
             for (int i = 0; i < 10; i++)

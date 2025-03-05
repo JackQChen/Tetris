@@ -167,9 +167,10 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            //for (int i = 0; i < 10; i++)
-            //    for (int j = 0; j < 20; j++)
-            //        allGrids[i, j].show = connector.GetCellStatus(i, j); 
+            var bottom = connector.GetRectangle().Bottom + 1;
+            for (int i = 0; i < 10; i++)
+                for (int j = bottom; j < 20; j++)
+                    allGrids[i, j].show = connector.GetCellStatus(i, j);
             int[] array = new int[10];
             for (int i = 0; i < 10; i++)
                 for (int j = 0; j < 20; j++)
@@ -1175,13 +1176,13 @@ namespace TetrisApp
 
                     var rect = connector.GetRectangle();
                     if (rect.Top == j)
-                        g.FillRectangle(Brushes.DarkGreen, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
-                    if (rect.Bottom == j)
                         g.FillRectangle(Brushes.LightGreen, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+                    if (rect.Bottom == j)
+                        g.FillRectangle(Brushes.DarkGreen, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
                     if (rect.Left == i)
-                        g.FillRectangle(Brushes.DeepSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
-                    if (rect.Right == i)
                         g.FillRectangle(Brushes.LightSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
+                    if (rect.Right == i)
+                        g.FillRectangle(Brushes.DeepSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
 
                     if (connector.GetCellStatus(i, j))
                         g.FillRectangle(showBrush, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);

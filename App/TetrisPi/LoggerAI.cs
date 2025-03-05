@@ -15,7 +15,7 @@
             writer = new StreamWriter(logFilePath, true) { AutoFlush = true };
         }
 
-        public static void Log(string message) => writer.WriteLine(message.Replace("\0", string.Empty));
+        public static void Log(string message) => writer.WriteLine(message);
 
         public static void Close() => writer.Close();
     }

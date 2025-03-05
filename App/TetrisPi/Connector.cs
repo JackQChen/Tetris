@@ -99,7 +99,7 @@ namespace TetrisApp
 
                 var strLog = new StringBuilder();
                 for (int i = 0; i < gridData.Length; i++)
-                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i].ToString().Replace("\0", "")}");
                 Logger.Log(strLog.ToString());
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
@@ -123,7 +123,7 @@ namespace TetrisApp
                     {
                         readyToTrigger = false;
                         tetrisCounts.Clear();
-                        Logger.Log($"Tetris = {tetris}");
+                        Logger.Log($"Tetris = {tetris.ToString().Replace("\0", "")}");
                         OnTetrisData?.Invoke(this, tetris);
                     }
                 }
@@ -212,7 +212,7 @@ namespace TetrisApp
 
         public Rectangle GetRectangle()
         {
-            return Rectangle.FromLTRB(9 - rectGrid.Left, 19 - rectGrid.Top, 9 - rectGrid.Right, 19 - rectGrid.Bottom);
+            return Rectangle.FromLTRB(9 - rectGrid.Right, 19 - rectGrid.Bottom, 9 - rectGrid.Left, 19 - rectGrid.Top);
         }
 
         public Tuple<int, int> GetColumnRange()
