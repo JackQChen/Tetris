@@ -17,7 +17,6 @@ namespace TetrisApp
         int maxRow = -1;
         Rectangle rectGrid;
 
-        int lastMaxRow = -1;
         bool readyToTrigger = true;
 
         Dictionary<int, int> tetrisCounts = new Dictionary<int, int>();
@@ -105,10 +104,9 @@ namespace TetrisApp
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
-                if (lastMaxRow != maxRow && rectGrid.Top == -1)
+                if (rectGrid.Top != -1 && rectGrid.Top - maxRow <= 2)
                 {
                     readyToTrigger = true;
-                    lastMaxRow = maxRow;
                     return true;
                 }
 

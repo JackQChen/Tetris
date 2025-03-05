@@ -1,4 +1,5 @@
-﻿using System.IO.Ports;
+﻿using System.Drawing;
+using System.IO.Ports;
 using System.Text;
 
 namespace TetrisApp
@@ -11,14 +12,13 @@ namespace TetrisApp
         byte[] receivedData = new byte[3];
         byte[] receivedBuffer = new byte[4096];
 
-        int[] gridData = new int[10];
+        uint[] gridData = new uint[10];
 
-        int maxRow = 0;
+        int maxRow = -1;
         Rectangle rectGrid;
 
-        bool readyToTrigger = false;
+        bool readyToTrigger = true;
 
-        int tetrisIndex = 0;
         Dictionary<int, int> tetrisCounts = new Dictionary<int, int>();
 
         public event EventHandler OnFrameData;
@@ -63,17 +63,11 @@ namespace TetrisApp
 
         private bool UpdateGridData(byte[] data)
         {
-            var d1 = data[0];
-            var col = d1 >> 4;
+            int col = data[0] >> 4;
             if (col > 9)
                 return false;
 
-            var d2 = data[1];
-            var d3 = data[2];
-
-            gridData[col] = (d1 & 0b1111) << 16;
-            gridData[col] |= d2 << 8;
-            gridData[col] |= d3;
+            gridData[col] = ((uint)data[0] & 0b1111) << 16 | (uint)data[1] << 8 | data[2];
 
             OnColumnData?.Invoke(this, col);
 
@@ -81,14 +75,14 @@ namespace TetrisApp
             {
                 OnFrameData?.Invoke(this, EventArgs.Empty);
 
-                var combined = 0;
+                var combined = 0U;
                 for (int i = 0; i < gridData.Length; i++)
                     combined |= gridData[i];
 
                 var range = GetRange(combined);
                 maxRow = range.Item1 == 0 ? range.Item2 : -1;
 
-                combined &= 0x00ffffff << (maxRow + 1);
+                combined &= 0xffffffff << (maxRow + 1);
                 range = GetRange(combined);
                 var startRow = range.Item1;
                 var endRow = range.Item2;
@@ -96,8 +90,8 @@ namespace TetrisApp
                 combined = 0;
                 for (int i = 0; i < gridData.Length; i++)
                 {
-                    if (((0x00ffffff << (maxRow + 1)) & gridData[i]) > 0)
-                        combined |= 1 << i;
+                    if (((0xffffffff << (maxRow + 1)) & gridData[i]) > 0)
+                        combined |= 1U << i;
                 }
                 range = GetRange(combined);
                 var startColumn = range.Item1;
@@ -124,15 +118,13 @@ namespace TetrisApp
                         tetrisCounts[tetris]++;
                     else
                         tetrisCounts[tetris] = 1;
-                    tetrisIndex++;
-                    if (tetrisIndex > 2)
+
+                    if (tetrisCounts[tetris] > 1)
                     {
-                        tetrisIndex = 0;
-                        tetris = tetrisCounts.OrderByDescending(kv => kv.Value).First().Key;
+                        readyToTrigger = false;
                         tetrisCounts.Clear();
                         Logger.Log($"Tetris = {tetris}");
                         OnTetrisData?.Invoke(this, tetris);
-                        readyToTrigger = false;
                     }
                 }
             }
@@ -140,7 +132,7 @@ namespace TetrisApp
             return true;
         }
 
-        Tuple<int, int> GetRange(int data)
+        Tuple<int, int> GetRange(uint data)
         {
             var start = -1;
             var end = -1;
