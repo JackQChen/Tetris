@@ -460,132 +460,6 @@ namespace TetrisApp
             public int ChangeType;
         }
 
-        //计算一个结果最好的X坐标落下去
-        //1.选形状完全匹配的，如果有多个匹配进入2；
-        //2.选消除行数最多的，如果有多个匹配进入3；
-        //3.选高度最低的，如果有多个匹配选第一个；
-        void CalcAI1()
-        {
-            //先把正在下落的格子显示状态抹除
-            foreach (var g in runGrids)
-            {
-                g.show = false;
-            }
-            List<CheckResult> results = new List<CheckResult>();
-            int changeType = curChangeType;
-            for (int change = 0; change < changeNum[curTetrisType]; change++)
-            {
-                SceneOffset local_offset = localOffset[curTetrisType][changeType];
-
-                for (int x = 0; x < kSceneWidth; x++)
-                {
-                    Grid[] lastValidGrids = null;
-                    for (int y = 0; y < kSceneHeight; y++)
-                    {
-                        var showGrids = GetRunGridsAtPos(x, y, local_offset);
-                        if (!CheckAIGridValid(showGrids))
-                        {
-                            break;
-                        }
-                        lastValidGrids = showGrids;
-                    }
-                    if (lastValidGrids != null)
-                    {
-                        CheckResult result = new CheckResult();
-                        result.Change = change;
-                        result.ChangeType = changeType;
-                        result.X = x;
-                        int minY = kSceneHeight - 1;
-                        bool matchShape = true;
-                        Dictionary<int, bool> lineY = new Dictionary<int, bool>();
-
-                        foreach (var g in lastValidGrids)
-                        {
-                            //计算高度
-                            if (g.sceneY < minY)
-                            {
-                                minY = g.sceneY;
-                            }
-                            //匹配形状
-                            if (g.sceneY + 1 < kSceneHeight)
-                            {
-                                Grid nextGrid = allGrids[g.sceneX, g.sceneY + 1];
-                                if (!GridsContainsGrid(lastValidGrids, nextGrid) && !nextGrid.show)
-                                {
-                                    matchShape = false;
-                                }
-                            }
-                            //计算消除行数
-                            if (!lineY.ContainsKey(g.sceneY))
-                            {
-                                lineY.Add(g.sceneY, true);
-                                if (CheckLineYFinished(g.sceneY, lastValidGrids))
-                                {
-                                    result.EraseLine++;
-                                }
-                            }
-                        }
-                        result.Height = kSceneHeight - minY;
-                        result.MatchShape = matchShape ? 1 : 2;
-
-                        results.Add(result);
-                    }
-                }
-
-                //遍历所有变形
-                changeType = (changeType + 1) % changeNum[curTetrisType];
-            }
-
-            results.Sort((a, b) =>
-            {
-                int minH = Math.Min(a.Height, b.Height);
-                if (minH > 10)
-                {
-                    if (a.EraseLine == b.EraseLine)
-                    {
-                        if (a.Height == b.Height)
-                        {
-                            return a.MatchShape - b.MatchShape;
-                        }
-                        return a.Height - b.Height;
-                    }
-                    return b.EraseLine - a.EraseLine;
-                }
-                if (a.MatchShape == b.MatchShape)
-                {
-                    if (a.EraseLine == b.EraseLine)
-                    {
-                        return a.Height - b.Height;
-                    }
-                    return b.EraseLine - a.EraseLine;
-                }
-                else
-                {
-                    return a.MatchShape - b.MatchShape;
-                }
-
-            });
-
-            var finalResult = results[0];
-            var offset = tetrisOffset[curTetrisType][finalResult.ChangeType];
-            int moveX = finalResult.X - offset.X1 - currentRunGridX;
-            foreach (var g in runGrids)//还原显示状态
-            {
-                g.show = true;
-            }
-            RunAISteps(moveX, finalResult.Change);
-        }
-        bool GridsContainsGrid(Grid[] grids, Grid grid)
-        {
-            foreach (var g in grids)
-            {
-                if (g.sceneX == grid.sceneX && g.sceneY == grid.sceneY)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         bool CheckLineYFinished(int y, Grid[] grids)
         {
             foreach (var h in grids)
@@ -962,7 +836,7 @@ namespace TetrisApp
                 x++;
 
             connector.Send((byte)(change << 4 | (x > 0 ? 1 : 0) << 3 | (x > 0 ? 1 : -1) * x));
-            Logger.Log($"X = {x.Normalize()}, C = {change.Normalize()}");
+            Logger.Log($"X = {x}, C = {change}".Normalize());
         }
 
         //正在下落
