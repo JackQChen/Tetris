@@ -20,4 +20,12 @@
         public static void Close() => writer.Close();
     }
 
+    public static class LoggerExtension
+    {
+        public static string Normize(this object obj)
+        {
+            return obj.ToString().Replace("\0", "");
+        }
+    }
+
 }
