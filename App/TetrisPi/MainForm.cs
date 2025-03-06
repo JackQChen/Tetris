@@ -962,7 +962,7 @@ namespace TetrisApp
                 x++;
 
             connector.Send((byte)(change << 4 | (x > 0 ? 1 : 0) << 3 | (x > 0 ? 1 : -1) * x));
-            Logger.Log($"X = {x.Normize()}, C = {change.Normize()}");
+            Logger.Log($"X = {x.Normalize()}, C = {change.Normalize()}");
         }
 
         //正在下落

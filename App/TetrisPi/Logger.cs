@@ -22,7 +22,7 @@
 
     public static class LoggerExtension
     {
-        public static string Normize(this object obj)
+        public static string Normalize(this object obj)
         {
             return obj.ToString().Replace("\0", "");
         }
