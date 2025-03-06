@@ -1,10 +1,5 @@
 using System.Runtime.InteropServices;
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using Timer = System.Timers.Timer;
 
 namespace TetrisApp
 {
@@ -31,10 +26,6 @@ namespace TetrisApp
             public int Y4;
         }
 
-        enum TetrisType
-        {
-            I, J, L, O, S, T, Z
-        }
         //网格大小
         const int kGridSize = 32;
         //画布起点
@@ -42,83 +33,19 @@ namespace TetrisApp
         //画布网格数 10x20
         const int kSceneWidth = 10;
         const int kSceneHeight = 20;
-        //像素大小
-        Size kSceneSize = new Size(kSceneWidth * kGridSize, kSceneHeight * kGridSize);
-        //预览框起点
-        Point kPreviewPoint = new Point(kSceneWidth * kGridSize + 20, 10);
-        //得分栏起点
-        Point kScorePoint = new Point(10, 2);
-        //预览框大小 4x4
-        const int kPreviewWidth = 4;
-        const int kPreviewHeight = 4;
-        //像素大小
-        Size kPreviewSize = new Size(kPreviewWidth * kGridSize, kPreviewHeight * kGridSize);
-        //随机数生成器
-        Random randGen = new Random();
         //全部网格
         Grid[,] allGrids = new Grid[kSceneWidth, kSceneHeight];
-        //预览网格
-        Grid[,] preGrids = new Grid[kPreviewWidth, kPreviewHeight];
-        //正在下落的方块
-        Grid[] runGrids = null;
-        //预览方块组
-        Grid[] nextPreGrids = new Grid[4];
         //7种组合，在第一块固定的时候，其他块的偏移
         List<SceneOffset>[] tetrisOffset = new List<SceneOffset>[7];
         //局部坐标系，以左上角为原点
         List<SceneOffset>[] localOffset = new List<SceneOffset>[7];
         //变体数量
         int[] changeNum = new int[7];
-        //出生点
-        int kRunGridBirthX = kSceneWidth / 2 - 2;
-        int kRunGridBirthY = 0;
-        //掉落位置
-        int currentRunGridX = 0;
-        int currentRunGridY = 0;
-        //预览位置
-        int kPreBornX = 0;
-        int kPreBornY = 0;
-        //预览区的offset
-        SceneOffset nextOffset = null;
-        //当前的offset
-        SceneOffset currentOffset = null;
-        //下落速度
-        const int dropSpeed = 5;
-        const int timerInterval = 1;
-        //当前的选型
-        int curChangeType;
-        int curTetrisType;
-        //下次的选型
-        int nextChangeType;
-        int nextTetrisType = -1;
-        //积分系数
-        int[] scoreParam = new int[4] { 10, 15, 20, 15 };
-        int GameScore = 0;
 
-        //是否使用AI
-        bool IsAiControl { get; set; } = true;
-
-        enum GameState
-        {
-            NormalDrop,//正在掉落
-            FastDrop,//快速掉落
-            Change,//变换形态
-            Destroy,//消除
-            Fall,//消除后 上方方块下落
-            NextRound,//结束一轮下落，1停止掉落后不消除，2或者消除后方块下落完成
-            GameOver,
-        }
-
-        //当前游戏状态
-        GameState gameState = GameState.NextRound;
-
-        Timer UITimer;
         Connector connector;
         AudioPlayer player;
         bool isWindows = false;
         DateTime lastUpdatedTime = DateTime.Now;
-
-        Font font;
 
         public MainForm()
         {
@@ -129,13 +56,6 @@ namespace TetrisApp
 
         void InitForm()
         {
-            //定时器
-            this.UITimer = new Timer
-            {
-                Enabled = true,
-                Interval = timerInterval
-            };
-            this.UITimer.Elapsed += OnTimer;
             // 自动重置
             Task.Factory.StartNew(() =>
             {
@@ -146,13 +66,13 @@ namespace TetrisApp
                     if ((DateTime.Now - lastUpdatedTime).TotalSeconds > 10)
                     {
                         Environment.Exit(0);
-                        // 保存截图
-                        var imageData = Paint();
-                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-                        if (!Directory.Exists(dir))
-                            Directory.CreateDirectory(dir);
-                        var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
-                        File.WriteAllBytes(path, imageData);
+                        //// 保存截图
+                        //var imageData = Paint();
+                        //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+                        //if (!Directory.Exists(dir))
+                        //    Directory.CreateDirectory(dir);
+                        //var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
+                        //File.WriteAllBytes(path, imageData);
                         //// 同步文件
                         //Task.Run(() =>
                         //{
@@ -164,41 +84,6 @@ namespace TetrisApp
                     }
                 }
             }, TaskCreationOptions.LongRunning);
-        }
-
-        public void OnLoad(EventArgs e)
-        {
-            isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            font = SystemFonts.CreateFont(isWindows ? "Arial" : "DejaVu Sans", 10);
-
-            // 初始化设备
-            connector = new Connector();
-            connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
-            connector.OnTetrisData += Connector_OnTetrisData;
-
-            player = new AudioPlayer();
-            //player.Init(3);
-
-            Restart();
-        }
-
-        private void Connector_OnTetrisData(object? sender, int tetrisData)
-        {
-            var maxRow = connector.GetMaxRow() - 1;
-            for (int i = 0; i < 10; i++)
-                for (int j = maxRow; j < 20; j++)
-                    allGrids[i, j].show = connector.GetCellStatus(i, j);
-            lastUpdatedTime = DateTime.Now;
-            int[] array = new int[10];
-            for (int i = 0; i < 10; i++)
-                for (int j = 0; j < 20; j++)
-                    array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
-            LoggerAI.Log(string.Join(',', array));
-            LoggerAI.Log($"Tetris = {tetrisData}");
-            nextChangeType = tetrisData % 10;
-            nextTetrisType = tetrisData / 10;
-            nextChangeType = nextChangeType % changeNum[nextTetrisType];
-            nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
         }
 
         void InitGrids()
@@ -217,22 +102,8 @@ namespace TetrisApp
                     allGrids[j, i] = grid;
                 }
             }
-
-            //初始化预览
-            for (int i = 0; i < kPreviewHeight; i++)
-            {
-                for (int j = 0; j < kPreviewWidth; j++)
-                {
-                    preGrids[j, i] = new Grid()
-                    {
-                        show = false,
-                        sceneY = i,
-                        sceneX = j,
-                        rect = new Rectangle(kPreviewPoint.X + kGridSize * j, kPreviewPoint.Y + kGridSize * i, kGridSize - 1, kGridSize - 1),
-                    };
-                }
-            }
         }
+
         void InitTetrisType()
         {
             //O
@@ -289,6 +160,39 @@ namespace TetrisApp
             }
         }
 
+        public void OnLoad(EventArgs e)
+        {
+            isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+            // 初始化设备
+            connector = new Connector();
+            connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
+            connector.OnTetrisData += Connector_OnTetrisData;
+
+            player = new AudioPlayer();
+            //player.Init(3);
+        }
+
+        private void Connector_OnTetrisData(object? sender, int tetrisData)
+        {
+            var maxRow = connector.GetMaxRow() - 1;
+            for (int i = 0; i < 10; i++)
+                for (int j = maxRow; j < 20; j++)
+                    allGrids[i, j].show = connector.GetCellStatus(i, j);
+            lastUpdatedTime = DateTime.Now;
+            int[] array = new int[10];
+            for (int i = 0; i < 10; i++)
+                for (int j = 0; j < 20; j++)
+                    array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
+            LoggerAI.Log(string.Join(',', array));
+            LoggerAI.Log($"Tetris = {tetrisData}");
+            var changeType = tetrisData % 10;
+            var tetrisType = tetrisData / 10;
+            changeType = changeType % changeNum[tetrisType];
+
+            CalcAI2(tetrisType, changeType);
+        }
+
         Grid GetGridByPos(int x, int y)
         {
             if (x < 0 || y < 0 || x >= kSceneWidth || y >= kSceneHeight)
@@ -309,155 +213,13 @@ namespace TetrisApp
             return grids;
         }
 
-        //预览区初始化
-        void CalcPreGrids()
+        bool CheckAIGridValid(Grid[] grids)
         {
-            SceneOffset offset = nextOffset;
-
-            foreach (Grid g in nextPreGrids)
+            foreach (var g in grids)
             {
-                if (g != null)
-                {
-                    g.show = false;
-                }
+                if (g == null || g.show) return false;
             }
-
-            nextPreGrids[0] = preGrids[kPreBornX + offset.X1, kPreBornY + offset.Y1];
-            nextPreGrids[1] = preGrids[kPreBornX + offset.X2, kPreBornY + offset.Y2];
-            nextPreGrids[2] = preGrids[kPreBornX + offset.X3, kPreBornY + offset.Y3];
-            nextPreGrids[3] = preGrids[kPreBornX + offset.X4, kPreBornY + offset.Y4];
-            foreach (Grid g in nextPreGrids)
-            {
-                g.show = true;
-            }
-        }
-
-        //重新开始
-        void Restart()
-        {
-            GameScore = 0;
-            for (int i = 0; i < kSceneWidth; i++)
-            {
-                for (int j = 0; j < kSceneHeight; j++)
-                {
-                    allGrids[i, j].show = false;
-                }
-            }
-            //初始化第一组
-            OnNextRound();
-            //定时器
-            this.UITimer.Start();
-        }
-
-        //键盘操作
-        public void OnKeyDown(char key)
-        {
-            switch (key)
-            {
-                case 'w':
-                    RunGridMove(Direction.UP);
-                    break;
-                case 's':
-                    gameState = GameState.FastDrop;
-                    break;
-                case 'a':
-                    RunGridMove(Direction.LEFT);
-                    break;
-                case 'd':
-                    RunGridMove(Direction.RIGHT);
-                    break;
-                case 'k':
-                    IsAiControl = !IsAiControl;
-                    CalcAICtrl();
-                    break;
-                case ' ':
-                    UITimer.Enabled = !UITimer.Enabled;
-                    break;
-            }
-        }
-
-        int dropCounter = 0;
-        void OnTimer(object sender, EventArgs e)
-        {
-            switch (gameState)
-            {
-                case GameState.NormalDrop:
-                    if (++dropCounter == dropSpeed)//500ms掉落一格
-                    {
-                        dropCounter = 0;
-                        OnDropping();
-                    }
-                    break;
-                case GameState.FastDrop:
-                    OnDropping();//100ms掉落一格
-                    break;
-                case GameState.Destroy:
-                    OnDestroy();
-                    break;
-                case GameState.Fall:
-                    Onfall();
-                    break;
-                case GameState.NextRound:
-                    OnNextRound();
-                    break;
-                case GameState.GameOver:
-                    this.UITimer.Stop();
-                    //Console.WriteLine($"Game Over! Score: {GameScore * 10}. Retry?");
-                    break;
-            }
-        }
-
-        //一轮下落的开始
-        void OnNextRound()
-        {
-            currentRunGridX = kRunGridBirthX;
-            currentRunGridY = kRunGridBirthY;
-
-            if (nextTetrisType == -1)
-                return;
-            currentOffset = nextOffset;
-            curChangeType = nextChangeType;
-            curTetrisType = nextTetrisType;
-
-            //把预览区的offset移到游戏区
-            runGrids = GetRunGridsAtPos(currentRunGridX, currentRunGridY, currentOffset);
-            if (!CheckNextGridValid(runGrids))
-            {
-                gameState = GameState.GameOver;
-                return;
-            }
-            foreach (Grid g in runGrids)
-            {
-                g.running = true;
-                g.show = true;
-            }
-            //生成预览区的offset
-            //GenerateNextTetris();
-            //计算预览区网格
-            CalcPreGrids();
-            gameState = GameState.NormalDrop;
-
-            if (IsAiControl)
-            {
-                CalcAICtrl();
-                nextTetrisType = -1;
-            }
-        }
-
-        void CalcAICtrl()
-        {
-            // CalcAI1();
-            CalcAI2();
-        }
-
-        class CheckResult
-        {
-            public int Change;//变形次数
-            public int X;//检查位置
-            public int MatchShape;//形状匹配
-            public int EraseLine;//消除行数
-            public int Height;//最终高度
-            public int ChangeType;
+            return true;
         }
 
         bool CheckLineYFinished(int y, Grid[] grids)
@@ -483,22 +245,15 @@ namespace TetrisApp
         }
 
         //Pierre Dellacherie算法
-        void CalcAI2()
+        void CalcAI2(int tetrisType, int changeType)
         {
-            //先把正在下落的格子显示状态抹除
-            foreach (var g in runGrids)
-            {
-                g.show = false;
-            }
-
             int R_X = 0; //最优坐标
             int R_Change = 0;//最优变换次数
             int R_ChangeType = 0;
             int R_Value = -9999;//最优评估值
-            int changeType = curChangeType;
-            for (int change = 0; change < changeNum[curTetrisType]; change++)
+            for (int change = 0; change < changeNum[tetrisType]; change++)
             {
-                SceneOffset local_offset = localOffset[curTetrisType][changeType];
+                SceneOffset local_offset = localOffset[tetrisType][changeType];
                 for (int x = 0; x < kSceneWidth; x++)
                 {
                     Grid[] lastValidGrids = null;
@@ -531,19 +286,13 @@ namespace TetrisApp
                     }
                 }
 
-                //遍历所有变形
-                changeType = (changeType + 1) % changeNum[curTetrisType];
+                changeType = (changeType + 1) % changeNum[tetrisType];
             }
 
-            var offset = tetrisOffset[curTetrisType][R_ChangeType];
-            int moveX = R_X - offset.X1 - currentRunGridX;
-            foreach (var g in runGrids)//还原显示状态
-            {
-                g.show = true;
-            }
+            var offset = tetrisOffset[tetrisType][R_ChangeType];
+            int moveX = R_X - offset.X1 - (kSceneWidth / 2 - 2);
 
-            RunDeviceSteps(moveX, R_Change);
-            RunAISteps(moveX, R_Change);
+            RunDeviceSteps(moveX, R_Change, tetrisType, changeType);
         }
 
         //参数1.高度
@@ -799,38 +548,11 @@ namespace TetrisApp
             return finalGrids;
         }
 
-        void RunAISteps(int moveX, int change)
-        {
-            while (change > 0)
-            {
-                RunGridMove(Direction.UP);
-                change--;
-            }
-
-            if (moveX > 0)
-            {
-                while (moveX > 0)
-                {
-                    RunGridMove(Direction.RIGHT);
-                    moveX--;
-                }
-            }
-            else if (moveX < 0)
-            {
-                while (moveX < 0)
-                {
-                    RunGridMove(Direction.LEFT);
-                    moveX++;
-                }
-            }
-            gameState = GameState.FastDrop;
-        }
-
-        void RunDeviceSteps(int moveX, int change)
+        void RunDeviceSteps(int moveX, int change, int tetrisType, int changeType)
         {
             var x = moveX;
-            var type = nextTetrisType;
-            if (type == 0 && (change == nextChangeType))
+            var type = tetrisType;
+            if (type == 0 && (change == changeType))
                 x--;
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
@@ -839,263 +561,5 @@ namespace TetrisApp
             Logger.Log($"X = {x}, C = {change}".Normalize());
         }
 
-        //正在下落
-        void OnDropping()
-        {
-            if (!RunGridMove(Direction.DOWN))
-            {
-                //原来的rungrid状态修改
-                foreach (Grid g in runGrids)
-                {
-                    g.running = false;
-                }
-
-                CalcGameScore();
-                gameState = GameState.Destroy;
-            }
-        }
-
-        enum Direction
-        {
-            LEFT, RIGHT, DOWN, UP
-        }
-
-        bool CheckAIGridValid(Grid[] grids)
-        {
-            foreach (var g in grids)
-            {
-                if (g == null || g.show) return false;
-            }
-            return true;
-        }
-        bool CheckNextGridValid(Grid[] nextGrids)
-        {
-            foreach (Grid g in nextGrids)
-            {
-                if (g == null) return false;
-                if (!g.running && g.show) return false;
-            }
-            return true;
-        }
-        bool RunGridMove(Direction dir)
-        {
-            Grid[] nextGrids = null;
-            switch (dir)
-            {
-                case Direction.DOWN:
-                    nextGrids = GetRunGridsAtPos(currentRunGridX, currentRunGridY + 1, currentOffset);
-                    if (!CheckNextGridValid(nextGrids)) return false;
-                    currentRunGridY++;
-                    break;
-                case Direction.LEFT:
-                    nextGrids = GetRunGridsAtPos(currentRunGridX - 1, currentRunGridY, currentOffset);
-                    if (!CheckNextGridValid(nextGrids)) return false;
-                    currentRunGridX--;
-                    break;
-                case Direction.RIGHT:
-                    nextGrids = GetRunGridsAtPos(currentRunGridX + 1, currentRunGridY, currentOffset);
-                    if (!CheckNextGridValid(nextGrids)) return false;
-                    currentRunGridX++;
-                    break;
-                case Direction.UP:
-                    {
-                        int changType = (curChangeType + 1) % changeNum[curTetrisType];
-                        SceneOffset offset = tetrisOffset[curTetrisType][changType];
-                        nextGrids = GetRunGridsAtPos(currentRunGridX, currentRunGridY, offset);
-                        if (!CheckNextGridValid(nextGrids))
-                            return false;
-                        currentOffset = offset;
-                        curChangeType = changType;
-                    }
-                    break;
-            }
-
-            foreach (Grid g in runGrids)
-            {
-                g.show = false;
-                g.running = false;
-            }
-            runGrids = nextGrids;
-            foreach (Grid g in runGrids)
-            {
-                g.show = true;
-                g.running = true;
-            }
-            return true;
-        }
-
-        void CalcGameScore()
-        {
-            int destroyLineNum = 0;
-            for (int j = 0; j < kSceneHeight; j++)
-            {
-                int cnt = 0;
-                for (int i = 0; i < kSceneWidth; i++)
-                {
-                    if (!allGrids[i, j].show)
-                    {
-                        break;
-                    }
-                    cnt++;
-                }
-                if (cnt == kSceneWidth)
-                {
-                    destroyLineNum++;
-                }
-            }
-            //积分
-            if (destroyLineNum > 0 && destroyLineNum < 4)
-            {
-                GameScore += destroyLineNum * scoreParam[destroyLineNum - 1];
-            }
-
-        }
-
-        //记录要下落的方块
-        List<Grid> fallGrids = new List<Grid>();
-        //停止之后判断有没有能消除的行
-        void OnDestroy()
-        {
-            int lastDestroyedLine = 0;
-            for (int j = 0; j < kSceneHeight; j++)
-            {
-                int cnt = 0;
-                for (int i = 0; i < kSceneWidth; i++)
-                {
-                    if (!allGrids[i, j].show)
-                    {
-                        break;
-                    }
-                    cnt++;
-                }
-                if (cnt == kSceneWidth)
-                {
-                    for (int i = 0; i < kSceneWidth; i++)
-                    {
-                        allGrids[i, j].show = false;
-                    }
-                    lastDestroyedLine = j;
-                    break;
-                }
-            }
-
-            fallGrids.Clear();
-            //找出消除行之上的所有方块
-            for (int j = 0; j < lastDestroyedLine; j++)
-            {
-                for (int i = 0; i < kSceneWidth; i++)
-                {
-                    if (allGrids[i, j].show)
-                    {
-                        fallGrids.Add(allGrids[i, j]);
-                    }
-                }
-            }
-
-            //回落
-            if (fallGrids.Count > 0)
-            {
-                gameState = GameState.Fall;
-            }
-            else
-            {
-                gameState = GameState.NextRound;
-            }
-        }
-
-
-        void Onfall()
-        {
-            //分两步，先隐藏原来的再显示下落后的
-            foreach (Grid g in fallGrids)
-            {
-                g.show = false;
-            }
-
-            //y方向取得下一个方块 从后往前处理
-            for (int i = fallGrids.Count - 1; i >= 0; i--)
-            {
-                Grid grid = GetGridByPos(fallGrids[i].sceneX, fallGrids[i].sceneY + 1);
-                grid.show = true;
-                fallGrids[i] = grid;
-            }
-
-            gameState = GameState.Destroy;
-        }
-
-        public byte[] Paint()
-        {
-            using (var image = new Image<Rgba32>((kSceneWidth + kPreviewWidth) * kGridSize + 30, (kSceneHeight) * kGridSize + 40))
-            {
-                //绘制边框
-                DrawBorderLine(image);
-                //绘制预览
-                DrawPreview(image);
-                //绘制方块
-                DrawTetris(image);
-                //绘制积分
-                DrawScore(image);
-                using (var ms = new MemoryStream())
-                {
-                    image.SaveAsPng(ms);  // 将图像保存为 PNG 格式
-                    return ms.ToArray();
-                }
-            }
-        }
-
-        void DrawBorderLine(Image<Rgba32> g)
-        {
-            g.Mutate(x => x.Fill(new SolidBrush(Color.White), g.Bounds));
-            g.Mutate(x => x.Draw(new SolidPen(Color.Black, 2), new Rectangle(kScenePoint, kSceneSize)));
-            g.Mutate(x => x.Draw(new SolidPen(Color.Black, 2), new Rectangle(kPreviewPoint, kPreviewSize)));
-            g.Mutate(x => x.Fill(GameBkgrd, new Rectangle(kScenePoint.X + 1, kScenePoint.Y + 1, kSceneSize.Width - 2, kSceneSize.Height - 2)));
-            g.Mutate(x => x.Fill(GameBkgrd, new Rectangle(kPreviewPoint.X + 1, kPreviewPoint.Y + 1, kPreviewSize.Width - 2, kPreviewSize.Height - 2)));
-        }
-
-        Brush showBrush = new SolidBrush(Color.Black);
-        Brush GameBkgrd = new SolidBrush(Color.FromRgb(147, 174, 97));
-        void DrawTetris(Image<Rgba32> g)
-        {
-            List<Rectangle> allShown = new List<Rectangle>();
-            foreach (Grid grid in allGrids)
-            {
-                if (grid.show)
-                {
-                    allShown.Add(grid.rect);
-                }
-            }
-            if (allShown.Count == 0)
-            {
-                return;
-            }
-            var rects = allShown.ToArray();
-            foreach (var rect in rects)
-                g.Mutate(x => x.Fill(showBrush, rect));
-
-        }
-
-        void DrawPreview(Image<Rgba32> g)
-        {
-            List<Rectangle> allShown = new List<Rectangle>();
-            foreach (Grid grid in preGrids)
-            {
-                if (grid.show)
-                {
-                    allShown.Add(grid.rect);
-                }
-            }
-            if (allShown.Count == 0)
-                return;
-
-            var rects = allShown.ToArray();
-            foreach (var rect in rects)
-                g.Mutate(x => x.Fill(showBrush, rect));
-        }
-
-        void DrawScore(Image<Rgba32> g)
-        {
-            g.Mutate(x => x.DrawText($"Score: {GameScore * 10}", font, new SolidBrush(Color.Black), new Point(kScorePoint.X, kScorePoint.Y)));
-        }
     }
-
 }
