@@ -1,9 +1,13 @@
-﻿namespace TetrisApp
+﻿using System.Collections.Concurrent;
+
+namespace TetrisApp
 {
     public class Logger
     {
         private static readonly string logFilePath;
         private static StreamWriter writer;
+
+        private static BlockingCollection<string> queue = new BlockingCollection<string>();
 
         static Logger()
         {
@@ -13,19 +17,20 @@
                 File.Delete(logFilePath);
 
             writer = new StreamWriter(logFilePath, true) { AutoFlush = true };
+
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    var log = queue.Take();
+                    writer.WriteLine(log.Replace("\0", ""));
+                }
+            }, TaskCreationOptions.LongRunning);
         }
 
-        public static void Log(string message) => writer.WriteLine(message);
+        public static void Log(string message) => queue.Add(message);
 
         public static void Close() => writer.Close();
-    }
-
-    public static class LoggerExtension
-    {
-        public static string ToNormalize(this object obj)
-        {
-            return obj.ToString().Replace("\0", "");
-        }
     }
 
 }
