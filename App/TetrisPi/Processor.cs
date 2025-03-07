@@ -195,8 +195,15 @@ namespace TetrisApp
         {
             var maxRow = connector.GetMaxRow() - 1;
             for (int i = 0; i < 10; i++)
-                for (int j = maxRow; j < 20; j++)
-                    allGrids[i, j].show = connector.GetCellStatus(i, j);
+            {
+                for (int j = 0; j < 20; j++)
+                {
+                    if (j < maxRow)
+                        allGrids[i, j].show = false;
+                    else
+                        allGrids[i, j].show = connector.GetCellStatus(i, j);
+                }
+            }
             lastUpdatedTime = DateTime.Now;
             int[] array = new int[10];
             for (int i = 0; i < 10; i++)
