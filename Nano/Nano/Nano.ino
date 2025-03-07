@@ -72,6 +72,15 @@ void loop() {
 		if (data == 0)
 			return;
 
+		if (data == 0xff)
+		{
+			digitalWrite(2, HIGH);
+			delay(50);
+			digitalWrite(2, LOW);
+			delay(50);
+			return;
+		}
+
 		int change = (data >> 4) & 0b1111;
 		int dir = (data >> 3) & 0b1;
 		int move = data & 0b111;
