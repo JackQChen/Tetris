@@ -1,9 +1,10 @@
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 
 namespace TetrisApp
 {
-    public class MainForm
+    public class Processor
     {
         class Grid
         {
@@ -47,14 +48,13 @@ namespace TetrisApp
         bool isWindows = false;
         DateTime lastUpdatedTime = DateTime.Now;
 
-        public MainForm()
+        BlockingCollection<int> queue = new BlockingCollection<int>();
+
+        public Processor()
         {
-            InitForm();
-            InitGrids();
-            InitTetrisType();
         }
 
-        void InitForm()
+        void InitTask()
         {
             // 自动重置
             Task.Factory.StartNew(() =>
@@ -160,7 +160,7 @@ namespace TetrisApp
             }
         }
 
-        public void OnLoad(EventArgs e)
+        public void Init()
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
@@ -171,6 +171,24 @@ namespace TetrisApp
 
             player = new AudioPlayer();
             //player.Init(3);
+
+            InitTask();
+            InitGrids();
+            InitTetrisType();
+
+            // 处理数据
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    var tetrisData = queue.Take();
+                    var changeType = tetrisData % 10;
+                    var tetrisType = tetrisData / 10;
+                    changeType = changeType % changeNum[tetrisType];
+
+                    CalcAI(tetrisType, changeType);
+                }
+            }, TaskCreationOptions.LongRunning);
         }
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
@@ -186,11 +204,7 @@ namespace TetrisApp
                     array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
             LoggerAI.Log(string.Join(',', array));
             LoggerAI.Log($"Tetris = {tetrisData}");
-            var changeType = tetrisData % 10;
-            var tetrisType = tetrisData / 10;
-            changeType = changeType % changeNum[tetrisType];
-
-            CalcAI2(tetrisType, changeType);
+            queue.Add(tetrisData);
         }
 
         Grid GetGridByPos(int x, int y)
@@ -245,7 +259,7 @@ namespace TetrisApp
         }
 
         //Pierre Dellacherie算法
-        void CalcAI2(int tetrisType, int changeType)
+        void CalcAI(int tetrisType, int changeType)
         {
             int R_X = 0; //最优坐标
             int R_Change = 0;//最优变换次数
@@ -558,7 +572,7 @@ namespace TetrisApp
                 x++;
 
             connector.Send((byte)(change << 4 | (x > 0 ? 1 : 0) << 3 | (x > 0 ? 1 : -1) * x));
-            Logger.Log($"X = {x}, C = {change}".Normalize());
+            Logger.Log($"X = {x}, C = {change}");
         }
 
     }

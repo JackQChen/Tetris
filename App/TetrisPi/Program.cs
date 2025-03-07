@@ -8,8 +8,8 @@ namespace TetrisApp
         [STAThread]
         static void Main()
         {
-            var form = new MainForm();
-            form.OnLoad(EventArgs.Empty);
+            var form = new Processor();
+            form.Init();
             new ManualResetEvent(false).WaitOne();
         }
     }

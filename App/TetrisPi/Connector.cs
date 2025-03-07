@@ -99,8 +99,8 @@ namespace TetrisApp
 
                 var strLog = new StringBuilder();
                 for (int i = 0; i < gridData.Length; i++)
-                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}".Normalize());
-                Logger.Log(strLog.Normalize());
+                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                Logger.Log(strLog.ToString());
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
@@ -123,7 +123,7 @@ namespace TetrisApp
                     {
                         readyToTrigger = false;
                         tetrisCounts.Clear();
-                        Logger.Log($"Tetris = {tetris}".Normalize());
+                        Logger.Log($"Tetris = {tetris}");
                         OnTetrisData?.Invoke(this, tetris);
                     }
                 }
