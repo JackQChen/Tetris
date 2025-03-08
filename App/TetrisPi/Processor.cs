@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 
@@ -47,8 +46,6 @@ namespace TetrisApp
         AudioPlayer player;
         bool isWindows = false;
         DateTime lastUpdatedTime = DateTime.Now;
-
-        BlockingCollection<int> queue = new BlockingCollection<int>();
 
         public Processor()
         {
@@ -175,20 +172,6 @@ namespace TetrisApp
             InitTask();
             InitGrids();
             InitTetrisType();
-
-            // 处理数据
-            Task.Factory.StartNew(() =>
-            {
-                while (true)
-                {
-                    var tetrisData = queue.Take();
-                    var changeType = tetrisData % 10;
-                    var tetrisType = tetrisData / 10;
-                    changeType = changeType % changeNum[tetrisType];
-
-                    CalcAI(tetrisType, changeType);
-                }
-            }, TaskCreationOptions.LongRunning);
         }
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
@@ -209,9 +192,15 @@ namespace TetrisApp
             for (int i = 0; i < 10; i++)
                 for (int j = 0; j < 20; j++)
                     array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
+
             LoggerAI.Log(string.Join(',', array));
             LoggerAI.Log($"Tetris = {tetrisData}");
-            queue.Add(tetrisData);
+
+            var changeType = tetrisData % 10;
+            var tetrisType = tetrisData / 10;
+            changeType = changeType % changeNum[tetrisType];
+
+            CalcAI(tetrisType, changeType);
         }
 
         Grid GetGridByPos(int x, int y)
