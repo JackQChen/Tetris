@@ -176,6 +176,15 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
+            lastUpdatedTime = DateTime.Now;
+            int[] array = new int[10];
+            for (int i = 0; i < 10; i++)
+                for (int j = 0; j < 20; j++)
+                    array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
+
+            LoggerAI.Log(string.Join(',', array));
+            LoggerAI.Log($"Tetris = {tetrisData}");
+
             var maxRow = connector.GetMaxRow() - 1;
             for (int i = 0; i < 10; i++)
             {
@@ -187,14 +196,6 @@ namespace TetrisApp
                         allGrids[i, j].show = connector.GetCellStatus(i, j);
                 }
             }
-            lastUpdatedTime = DateTime.Now;
-            int[] array = new int[10];
-            for (int i = 0; i < 10; i++)
-                for (int j = 0; j < 20; j++)
-                    array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
-
-            LoggerAI.Log(string.Join(',', array));
-            LoggerAI.Log($"Tetris = {tetrisData}");
 
             var changeType = tetrisData % 10;
             var tetrisType = tetrisData / 10;
