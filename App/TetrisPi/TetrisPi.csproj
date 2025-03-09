@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 	  <Compile Remove="Processor.cs" />
+	  <Compile Remove="Processor2.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

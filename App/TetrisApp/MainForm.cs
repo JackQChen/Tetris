@@ -109,6 +109,8 @@ namespace TetrisApp
         Connector connector;
         bool isWindows = false;
 
+        Processor processor = new Processor();
+
         public MainForm()
         {
             InitializeComponent();
@@ -141,13 +143,31 @@ namespace TetrisApp
             {
                 while (true)
                 {
-                    Thread.Sleep(30000);
+                    //Thread.Sleep(30000);
                     //if ((DateTime.Now - connector.LastUpdatedTime).TotalSeconds > 30)
                     //{
                     //    // 重置
                     //    connector.Send(0xff);
                     //    Restart();
                     //}
+
+
+                    Thread.Sleep(1000);
+
+                    for (int i = 0; i < kSceneWidth; i++)
+                        for (int j = 0; j < kSceneHeight; j++)
+                            Processor.arr[i, j] = allGrids[i, 19 - j].show ? 1 : 0;
+
+                    //Random randGen = new Random();
+                    //nextTetrisType = randGen.Next(7);//选择类型
+                    //nextChangeType = randGen.Next(4);//选择变体
+
+                    nextTetrisType = 3;//选择类型
+                    nextChangeType = 0;//选择变体
+
+                    nextChangeType = nextChangeType % changeNum[nextTetrisType];
+                    nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
+                    processor.curbrick = new Brick(0);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -433,7 +453,8 @@ namespace TetrisApp
         void CalcAICtrl()
         {
             // CalcAI1();
-            CalcAI2();
+            //CalcAI2();
+            CalcAI3();
         }
 
         class CheckResult
@@ -909,6 +930,19 @@ namespace TetrisApp
             }
 
             return finalGrids;
+        }
+
+        void CalcAI3()
+        {
+            var result = processor.AIControl();
+            switch (result.Item1)
+            {
+                case 0:
+                    {
+                        RunAISteps(result.Item3 - 4, 0);
+                    }
+                    break;
+            }
         }
 
         void RunAISteps(int moveX, int change)
