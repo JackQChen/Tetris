@@ -70,7 +70,7 @@ namespace TetrisApp
                         if (col > 9)
                             i++;
                         else
-                            queue.Add(receivedData);
+                            queue.Add(receivedData.ToArray());
                     }
                 }
             }
