@@ -23,7 +23,7 @@ namespace TetrisApp
                 while (true)
                 {
                     var log = queue.Take();
-                    writer.WriteLine(log);
+                    writer.WriteLine(log.Replace("\0", ""));
                 }
             }, TaskCreationOptions.LongRunning);
         }
