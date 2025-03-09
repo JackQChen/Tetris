@@ -153,6 +153,8 @@ namespace TetrisApp
 
 
                     Thread.Sleep(1000);
+                    if (!UITimer.Enabled)
+                        continue;
 
                     for (int i = 0; i < kSceneWidth; i++)
                         for (int j = 0; j < kSceneHeight; j++)
@@ -162,12 +164,12 @@ namespace TetrisApp
                     //nextTetrisType = randGen.Next(7);//选择类型
                     //nextChangeType = randGen.Next(4);//选择变体
 
-                    nextTetrisType = 3;//选择类型
+                    nextTetrisType = 2;//选择类型
                     nextChangeType = 0;//选择变体
 
                     nextChangeType = nextChangeType % changeNum[nextTetrisType];
                     nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-                    processor.curbrick = new Brick(0);
+                    processor.curbrick = new Brick(6);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -675,7 +677,7 @@ namespace TetrisApp
                 g.show = true;
             }
 
-            RunDeviceSteps(moveX, R_Change);
+            //RunDeviceSteps(moveX, R_Change);
             RunAISteps(moveX, R_Change);
         }
 
@@ -935,11 +937,22 @@ namespace TetrisApp
         void CalcAI3()
         {
             var result = processor.AIControl();
-            switch (result.Item1)
+            int type = result.Item1, rotate = result.Item2, move = result.Item3;
+            switch (type)
             {
                 case 0:
                     {
-                        RunAISteps(result.Item3 - 4, 0);
+                        RunAISteps(move - 4, 0);
+                    }
+                    break;
+                case 6:
+                    {
+                        if (rotate == 1)
+                            RunAISteps(move - 6, 4 - rotate);
+                        else if (rotate == 2)
+                            RunAISteps(move - 5, 4 - rotate);
+                        else
+                            RunAISteps(move - 4, 4 - rotate);
                     }
                     break;
             }
