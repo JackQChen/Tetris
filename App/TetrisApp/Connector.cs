@@ -167,7 +167,7 @@ namespace TetrisApp
                 return 1;
             else if (w == 2 && h == 3)
             {
-                if (CheckCells(0b101101)) return 40; // S90
+                if (CheckCells(0b101101)) return 41; // S90
                 if (CheckCells(0b011110)) return 61; // Z90
                 if (CheckCells(0b101011)) return 20; // L0
                 if (CheckCells(0b110101)) return 22; // L180
@@ -178,7 +178,7 @@ namespace TetrisApp
             }
             else if (w == 3 && h == 2)
             {
-                if (CheckCells(0b011110)) return 41; // S0
+                if (CheckCells(0b011110)) return 40; // S0
                 if (CheckCells(0b110011)) return 60; // Z0
                 if (CheckCells(0b111100)) return 21; // L90
                 if (CheckCells(0b001111)) return 23; // L270
