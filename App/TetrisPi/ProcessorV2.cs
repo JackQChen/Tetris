@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace TetrisApp
 {
-    public class Processor
+    public class ProcessorV2
     {
         class Grid
         {
@@ -22,7 +22,7 @@ namespace TetrisApp
         //全部网格
         Grid[,] allGrids = new Grid[kSceneWidth, kSceneHeight];
 
-        public Processor()
+        public ProcessorV2()
         {
             //O
             changeNum[3] = 1;

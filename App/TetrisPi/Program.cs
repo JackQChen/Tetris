@@ -8,7 +8,7 @@ namespace TetrisApp
         [STAThread]
         static void Main()
         {
-            var processor = new Processor();
+            var processor = new ProcessorV2();
             processor.Init();
             new ManualResetEvent(false).WaitOne();
         }
