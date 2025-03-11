@@ -236,8 +236,8 @@ namespace TetrisApp
 
             //S
             tetrisOffset[4] = new List<SceneOffset>();
-            tetrisOffset[4].Add(new SceneOffset() { X1 = 1, Y1 = 0, X2 = 1, Y2 = 1, X3 = 2, Y3 = 1, X4 = 2, Y4 = 2 });
             tetrisOffset[4].Add(new SceneOffset() { X1 = 2, Y1 = 1, X2 = 3, Y2 = 1, X3 = 1, Y3 = 2, X4 = 2, Y4 = 2 });
+            tetrisOffset[4].Add(new SceneOffset() { X1 = 1, Y1 = 0, X2 = 1, Y2 = 1, X3 = 2, Y3 = 1, X4 = 2, Y4 = 2 });
             changeNum[4] = 2;
             //Z
             tetrisOffset[6] = new List<SceneOffset>();
@@ -393,11 +393,8 @@ namespace TetrisApp
                             for (int j = 0; j < kSceneHeight; j++)
                                 processor.map[i + 1, j + 3] = allGrids[i, j].show ? 1 : 0;
 
-                        //Random randGen = new Random();
-                        //nextTetrisType = randGen.Next(7);//选择类型
-                        //nextChangeType = randGen.Next(4);//选择变体
-
-                        nextTetrisType = 1;//选择类型
+                        Random randGen = new Random();
+                        nextTetrisType = randGen.Next(7);//选择类型
                         nextChangeType = randGen.Next(4);//选择变体
 
                         nextChangeType = nextChangeType % changeNum[nextTetrisType];
@@ -960,56 +957,65 @@ namespace TetrisApp
                 //O
                 case 1:
                     {
-                        RunAISteps(move - 5, 0);
+                        RunAISteps(3, move - 5, 0);
                     }
                     break;
                 //I
                 case 2:
                     {
                         if (rotate == 1)
-                            RunAISteps(move - 5, change);
+                            RunAISteps(0, move - 5, change);
                         else
-                            RunAISteps(move - 6, change + 1);
+                            RunAISteps(0, move - 6, change + 1);
                     }
                     break;
                 //T
                 case 3:
                     {
                         if (rotate == 3)
-                            RunAISteps(move - 5, 6 - rotate);
+                            RunAISteps(5, move - 5, 4 - change + 6 - rotate);
                         else
-                            RunAISteps(move - 6, 6 - rotate);
+                            RunAISteps(5, move - 6, 4 - change + 6 - rotate);
                     }
                     break;
                 //Z
                 case 4:
+                    {
+                        RunAISteps(6, move - 6, 2 - change + (rotate == 1 ? 1 : 0));
+                    }
+                    break;
                 //S
                 case 5:
                     {
-                        RunAISteps(move - 6, rotate == 1 ? 1 : 0);
+                        RunAISteps(4, move - 6, 2 - change + (rotate == 1 ? 1 : 0));
                     }
                     break;
                 //J
                 case 6:
                     {
                         if (rotate == 1 || rotate == 3)
-                            RunAISteps(move - 6, 4 - rotate);
+                            RunAISteps(1, move - 6, 4 - change + 4 - rotate);
                         else if (rotate == 2)
-                            RunAISteps(move - 5, 4 - rotate);
+                            RunAISteps(1, move - 5, 4 - change + 4 - rotate);
                         else
-                            RunAISteps(move - 6, 0);
+                            RunAISteps(1, move - 6, 4 - change);
                     }
                     break;
                 //L
                 case 7:
                     {
                         if (rotate < 4)
-                            RunAISteps(move - 6, 4 - rotate);
+                            RunAISteps(2, move - 6, 4 - change + 4 - rotate);
                         else
-                            RunAISteps(move - 5, 0);
+                            RunAISteps(2, move - 5, 4 - change);
                     }
                     break;
             }
+        }
+
+        void RunAISteps(int type, int moveX, int change)
+        {
+            RunAISteps(moveX, change % changeNum[type]);
         }
 
         void RunAISteps(int moveX, int change)
