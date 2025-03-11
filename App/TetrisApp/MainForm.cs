@@ -151,25 +151,9 @@ namespace TetrisApp
                     //    Restart();
                     //}
 
-
-                    Thread.Sleep(1000);
                     if (!UITimer.Enabled)
                         continue;
 
-                    for (int i = 0; i < kSceneWidth; i++)
-                        for (int j = 0; j < kSceneHeight; j++)
-                            Processor.arr[i, j] = allGrids[i, 19 - j].show ? 1 : 0;
-
-                    //Random randGen = new Random();
-                    //nextTetrisType = randGen.Next(7);//选择类型
-                    //nextChangeType = randGen.Next(4);//选择变体
-
-                    nextTetrisType = 2;//选择类型
-                    nextChangeType = 0;//选择变体
-
-                    nextChangeType = nextChangeType % changeNum[nextTetrisType];
-                    nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
-                    processor.curbrick = new Brick(6);
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -403,11 +387,43 @@ namespace TetrisApp
                     Onfall();
                     break;
                 case GameState.NextRound:
-                    OnNextRound();
+                    {
+
+                        for (int i = 0; i < kSceneWidth; i++)
+                            for (int j = 0; j < kSceneHeight; j++)
+                                processor.map[i + 1, j + 3] = allGrids[i, j].show ? 1 : 0;
+
+                        //Random randGen = new Random();
+                        //nextTetrisType = randGen.Next(7);//选择类型
+                        //nextChangeType = randGen.Next(4);//选择变体
+
+                        nextTetrisType = 1;//选择类型
+                        nextChangeType = randGen.Next(4);//选择变体
+
+                        nextChangeType = nextChangeType % changeNum[nextTetrisType];
+                        nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
+
+                        var type = 0;
+                        switch (nextTetrisType)
+                        {
+                            case 0: type = 2; break;
+                            case 1: type = 6; break;
+                            case 2: type = 7; break;
+                            case 3: type = 1; break;
+                            case 4: type = 5; break;
+                            case 5: type = 3; break;
+                            case 6: type = 4; break;
+
+                        }
+                        processor.curType = type;
+                        processor.curChange = nextChangeType;
+
+                        OnNextRound();
+                    }
                     break;
                 case GameState.GameOver:
                     this.UITimer.Stop();
-                    Restart();
+                    //Restart();
                     break;
             }
 
@@ -937,22 +953,60 @@ namespace TetrisApp
         void CalcAI3()
         {
             var result = processor.AIControl();
-            int type = result.Item1, rotate = result.Item2, move = result.Item3;
+            var change = processor.curChange;
+            int type = result.Item1, move = result.Item2, rotate = result.Item3;
             switch (type)
             {
-                case 0:
+                //O
+                case 1:
                     {
-                        RunAISteps(move - 4, 0);
+                        RunAISteps(move - 5, 0);
                     }
                     break;
-                case 6:
+                //I
+                case 2:
                     {
                         if (rotate == 1)
+                            RunAISteps(move - 5, change);
+                        else
+                            RunAISteps(move - 6, change + 1);
+                    }
+                    break;
+                //T
+                case 3:
+                    {
+                        if (rotate == 3)
+                            RunAISteps(move - 5, 6 - rotate);
+                        else
+                            RunAISteps(move - 6, 6 - rotate);
+                    }
+                    break;
+                //Z
+                case 4:
+                //S
+                case 5:
+                    {
+                        RunAISteps(move - 6, rotate == 1 ? 1 : 0);
+                    }
+                    break;
+                //J
+                case 6:
+                    {
+                        if (rotate == 1 || rotate == 3)
                             RunAISteps(move - 6, 4 - rotate);
                         else if (rotate == 2)
                             RunAISteps(move - 5, 4 - rotate);
                         else
-                            RunAISteps(move - 4, 4 - rotate);
+                            RunAISteps(move - 6, 0);
+                    }
+                    break;
+                //L
+                case 7:
+                    {
+                        if (rotate < 4)
+                            RunAISteps(move - 6, 4 - rotate);
+                        else
+                            RunAISteps(move - 5, 0);
                     }
                     break;
             }

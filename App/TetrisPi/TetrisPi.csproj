@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Processor2.cs" />
+	  <Compile Remove="Processor.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
