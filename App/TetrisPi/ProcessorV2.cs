@@ -64,22 +64,33 @@ namespace TetrisApp
                     Thread.Sleep(10000);
                     if ((DateTime.Now - lastUpdatedTime).TotalSeconds > 10)
                     {
-                        Environment.Exit(0);
-                        //// 保存截图
-                        //var imageData = Paint();
-                        //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-                        //if (!Directory.Exists(dir))
-                        //    Directory.CreateDirectory(dir);
-                        //var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
-                        //File.WriteAllBytes(path, imageData);
+                        //Environment.Exit(0);
+                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+
+                        var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
+
+                        Logger.Close();
+                        var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
+                        Logger.Open(logFilePath);
+
+                        LoggerAI.Close();
+                        logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
+                        LoggerAI.Open(logFilePath);
+
+                        var path = Path.Combine(dir, "GameScore.txt");
+                        var strScore = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}{Environment.NewLine}GameScore = {GameScore}{Environment.NewLine}";
+                        File.AppendAllText(path, strScore);
+
                         //// 同步文件
                         //Task.Run(() =>
                         //{
                         //    ftpHandler.SyncFiles();
                         //});
-                        //// 重置
-                        //connector.Send(0xff);
-                        //Restart();
+                        // 重置
+                        connector.Send(0xff);
+                        GameScore = 0;
                     }
                 }
             }, TaskCreationOptions.LongRunning);
@@ -88,6 +99,19 @@ namespace TetrisApp
         public void Init()
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
+
+            Logger.Close();
+            var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
+            Logger.Open(logFilePath);
+
+            LoggerAI.Close();
+            logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
+            LoggerAI.Open(logFilePath);
 
             // 初始化设备
             connector = new Connector();
@@ -100,23 +124,9 @@ namespace TetrisApp
             InitTask();
         }
 
-        int lastMaxRow = 19;
-
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
             var maxRow = connector.GetMaxRow() - 1;
-            if (maxRow > lastMaxRow)
-            {
-                var rows = maxRow - lastMaxRow;
-                lastMaxRow = maxRow;
-                switch (rows)
-                {
-                    case 1: GameScore += 100; break;
-                    case 2: GameScore += 300; break;
-                    case 3: GameScore += 700; break;
-                    case 4: GameScore += 1500; break;
-                }
-            }
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < 20; j++)
@@ -167,7 +177,17 @@ namespace TetrisApp
         {
             var result = AIControl();
             var change = changeType;
-            int type = result.Item1, move = result.Item2, rotate = result.Item3;
+            int type = result.Item1, move = result.Item2, rotate = result.Item3, rows = result.Item4;
+            if (rows > 0)
+            {
+                switch (rows)
+                {
+                    case 1: GameScore += 100; break;
+                    case 2: GameScore += 300; break;
+                    case 3: GameScore += 700; break;
+                    case 4: GameScore += 1500; break;
+                }
+            }
             switch (type)
             {
                 //O
@@ -254,11 +274,12 @@ namespace TetrisApp
         const int map_height = 23;
         public int[,] map = new int[map_width, map_height];
 
-        public Tuple<int, int, int> AIControl()
+        public Tuple<int, int, int, int> AIControl()
         {
             double bestins = -0x7ffffff;
             int bestst = 0;
             int rotime = 0;
+            int lines = 0;
 
             int Ranbk = curType;
             brick one_bk = new brick();
@@ -305,6 +326,7 @@ namespace TetrisApp
                         bestins = tbest;
                         bestst = ix;
                         rotime = i;
+                        lines = completeline;
                     }
                 }
             }
@@ -312,7 +334,7 @@ namespace TetrisApp
             //{
             //    RotateBrick(one_bk);
             //}
-            return Tuple.Create(curType, bestst, rotime);
+            return Tuple.Create(curType, bestst, rotime, lines);
         }
 
         private bool canRun(brick mbk, int[,] m_try)
