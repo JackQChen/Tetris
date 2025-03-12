@@ -71,11 +71,9 @@ namespace TetrisApp
 
                         var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
 
-                        Logger.Close();
                         var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
                         Logger.Open(logFilePath);
 
-                        LoggerAI.Close();
                         logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
                         LoggerAI.Open(logFilePath);
 
@@ -105,11 +103,9 @@ namespace TetrisApp
 
             var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
 
-            Logger.Close();
             var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
             Logger.Open(logFilePath);
 
-            LoggerAI.Close();
             logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
             LoggerAI.Open(logFilePath);
 
