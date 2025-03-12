@@ -22,6 +22,8 @@ namespace TetrisApp
         //全部网格
         Grid[,] allGrids = new Grid[kSceneWidth, kSceneHeight];
 
+        int GameScore = 0;
+
         public ProcessorV2()
         {
             //O
@@ -98,9 +100,23 @@ namespace TetrisApp
             InitTask();
         }
 
+        int lastMaxRow = 19;
+
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
             var maxRow = connector.GetMaxRow() - 1;
+            if (maxRow > lastMaxRow)
+            {
+                var rows = maxRow - lastMaxRow;
+                lastMaxRow = maxRow;
+                switch (rows)
+                {
+                    case 1: GameScore += 100; break;
+                    case 2: GameScore += 300; break;
+                    case 3: GameScore += 700; break;
+                    case 4: GameScore += 1500; break;
+                }
+            }
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < 20; j++)
