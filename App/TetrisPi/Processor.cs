@@ -47,6 +47,9 @@ namespace TetrisApp
         bool isWindows = false;
         DateTime lastUpdatedTime = DateTime.Now;
 
+        int completeline = 0;
+        int GameScore = 0;
+
         public Processor()
         {
         }
@@ -62,22 +65,31 @@ namespace TetrisApp
                     Thread.Sleep(10000);
                     if ((DateTime.Now - lastUpdatedTime).TotalSeconds > 10)
                     {
-                        Environment.Exit(0);
-                        //// 保存截图
-                        //var imageData = Paint();
-                        //var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-                        //if (!Directory.Exists(dir))
-                        //    Directory.CreateDirectory(dir);
-                        //var path = Path.Combine(dir, $"{DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss")}.png");
-                        //File.WriteAllBytes(path, imageData);
+                        //Environment.Exit(0);
+                        var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+
+                        var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
+
+                        var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
+                        Logger.Open(logFilePath);
+
+                        logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
+                        LoggerAI.Open(logFilePath);
+
+                        var path = Path.Combine(dir, "GameScore.txt");
+                        var strScore = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}{Environment.NewLine}GameScore = {GameScore}{Environment.NewLine}";
+                        File.AppendAllText(path, strScore);
+
                         //// 同步文件
                         //Task.Run(() =>
                         //{
                         //    ftpHandler.SyncFiles();
                         //});
-                        //// 重置
-                        //connector.Send(0xff);
-                        //Restart();
+                        // 重置
+                        connector.Send(0xff);
+                        GameScore = 0;
                     }
                 }
             }, TaskCreationOptions.LongRunning);
@@ -201,7 +213,20 @@ namespace TetrisApp
             var tetrisType = tetrisData / 10;
             changeType = changeType % changeNum[tetrisType];
 
+            completeline = 0;
+
             CalcAI(tetrisType, changeType);
+
+            if (completeline > 0)
+            {
+                switch (completeline)
+                {
+                    case 1: GameScore += 100; break;
+                    case 2: GameScore += 300; break;
+                    case 3: GameScore += 700; break;
+                    case 4: GameScore += 1500; break;
+                }
+            }
         }
 
         Grid GetGridByPos(int x, int y)
@@ -289,6 +314,7 @@ namespace TetrisApp
                         int value = -45 * landingHeight + 34 * eraseLine - 32 * boardRowTransitions - 93 * boardColTransitions - (79 * boardBuriedHoles) - 34 * wells;
                         if (value > R_Value)
                         {
+                            completeline = eraseLine;
                             R_Value = value;
                             R_X = x;
                             R_Change = change;
