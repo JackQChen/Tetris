@@ -22,43 +22,51 @@ void setup() {
 	pinMode(A1, INPUT);
 }
 
-int channelRead(byte channel, uint8_t pin)
+bool channelRead(byte channel, uint8_t pin)
+{
+	return channelRead(channel, pin, false);
+}
+
+bool channelRead(byte channel, uint8_t pin, bool isColumn)
 {
 	digitalWrite(6, channel & 0b1);
 	digitalWrite(7, channel >> 1 & 0b1);
 	digitalWrite(8, channel >> 2 & 0b1);
 	digitalWrite(9, channel >> 3 & 0b1);
-	return analogRead(pin);
+	if (isColumn)
+		return analogRead(pin) > thresholdHigh;
+	else
+		return analogRead(pin) < thresholdLow;
 }
 
 void loop() {
 	//检测列数据
-	if (channelRead(columnIndex, A0) > thresholdHigh)
+	if (channelRead(columnIndex, A0, true))
 	{
 		byte data[3] = { 0, 0, 0 };
 		data[0] = columnIndex << 4;
 		analogRead(A1); //等待ADC稳定
-		data[0] |= (channelRead(5, A1) < thresholdLow) << 3;
-		data[0] |= (channelRead(4, A1) < thresholdLow) << 2;
-		data[0] |= (channelRead(3, A1) < thresholdLow) << 1;
-		data[0] |= (channelRead(2, A1) < thresholdLow);
-		data[1] = (channelRead(1, A1) < thresholdLow) << 7;
-		data[1] |= (channelRead(0, A1) < thresholdLow) << 6;
-		data[1] |= (channelRead(15, A0) < thresholdLow) << 5;
-		data[1] |= (channelRead(14, A0) < thresholdLow) << 4;
-		data[1] |= (channelRead(13, A0) < thresholdLow) << 3;
-		data[1] |= (channelRead(12, A0) < thresholdLow) << 2;
-		data[1] |= (channelRead(11, A0) < thresholdLow) << 1;
-		data[1] |= (channelRead(10, A0) < thresholdLow);
+		data[0] |= channelRead(5, A1) << 3;
+		data[0] |= channelRead(4, A1) << 2;
+		data[0] |= channelRead(3, A1) << 1;
+		data[0] |= channelRead(2, A1);
+		data[1] = channelRead(1, A1) << 7;
+		data[1] |= channelRead(0, A1) << 6;
+		data[1] |= channelRead(15, A0) << 5;
+		data[1] |= channelRead(14, A0) << 4;
+		data[1] |= channelRead(13, A0) << 3;
+		data[1] |= channelRead(12, A0) << 2;
+		data[1] |= channelRead(11, A0) << 1;
+		data[1] |= channelRead(10, A0);
 		analogRead(A1); //等待ADC稳定
-		data[2] = (channelRead(8, A1) < thresholdLow) << 7;
-		data[2] |= (channelRead(9, A1) < thresholdLow) << 6;
-		data[2] |= (channelRead(10, A1) < thresholdLow) << 5;
-		data[2] |= (channelRead(11, A1) < thresholdLow) << 4;
-		data[2] |= (channelRead(12, A1) < thresholdLow) << 3;
-		data[2] |= (channelRead(13, A1) < thresholdLow) << 2;
-		data[2] |= (channelRead(14, A1) < thresholdLow) << 1;
-		data[2] |= (channelRead(15, A1) < thresholdLow);
+		data[2] = channelRead(8, A1) << 7;
+		data[2] |= channelRead(9, A1) << 6;
+		data[2] |= channelRead(10, A1) << 5;
+		data[2] |= channelRead(11, A1) << 4;
+		data[2] |= channelRead(12, A1) << 3;
+		data[2] |= channelRead(13, A1) << 2;
+		data[2] |= channelRead(14, A1) << 1;
+		data[2] |= channelRead(15, A1);
 		Serial.write(data, 3);
 		columnIndex++;
 		if (columnIndex > 9)
