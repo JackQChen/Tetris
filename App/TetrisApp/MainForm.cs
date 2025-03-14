@@ -389,31 +389,31 @@ namespace TetrisApp
                 case GameState.NextRound:
                     {
 
-                        for (int i = 0; i < kSceneWidth; i++)
-                            for (int j = 0; j < kSceneHeight; j++)
-                                processor.map[i + 1, j + 3] = allGrids[i, j].show ? 1 : 0;
+                        //for (int i = 0; i < kSceneWidth; i++)
+                        //    for (int j = 0; j < kSceneHeight; j++)
+                        //        processor.map[i + 1, j + 3] = allGrids[i, j].show ? 1 : 0;
 
-                        Random randGen = new Random();
-                        nextTetrisType = randGen.Next(7);//选择类型
-                        nextChangeType = randGen.Next(4);//选择变体
+                        //Random randGen = new Random();
+                        //nextTetrisType = randGen.Next(7);//选择类型
+                        //nextChangeType = randGen.Next(4);//选择变体
 
-                        nextChangeType = nextChangeType % changeNum[nextTetrisType];
-                        nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
+                        //nextChangeType = nextChangeType % changeNum[nextTetrisType];
+                        //nextOffset = tetrisOffset[nextTetrisType][nextChangeType];
 
-                        var type = 0;
-                        switch (nextTetrisType)
-                        {
-                            case 0: type = 2; break;
-                            case 1: type = 6; break;
-                            case 2: type = 7; break;
-                            case 3: type = 1; break;
-                            case 4: type = 5; break;
-                            case 5: type = 3; break;
-                            case 6: type = 4; break;
+                        //var type = 0;
+                        //switch (nextTetrisType)
+                        //{
+                        //    case 0: type = 2; break;
+                        //    case 1: type = 6; break;
+                        //    case 2: type = 7; break;
+                        //    case 3: type = 1; break;
+                        //    case 4: type = 5; break;
+                        //    case 5: type = 3; break;
+                        //    case 6: type = 4; break;
 
-                        }
-                        processor.curType = type;
-                        processor.curChange = nextChangeType;
+                        //}
+                        //processor.curType = type;
+                        //processor.curChange = nextChangeType;
 
                         OnNextRound();
                     }
@@ -469,7 +469,7 @@ namespace TetrisApp
         {
             // CalcAI1();
             //CalcAI2();
-            CalcAI3();
+            //CalcAI3();
         }
 
         class CheckResult

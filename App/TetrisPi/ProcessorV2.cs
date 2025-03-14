@@ -65,17 +65,18 @@ namespace TetrisApp
                     if ((DateTime.Now - lastUpdatedTime).TotalSeconds > 10)
                     {
                         //Environment.Exit(0);
+
                         var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
                         if (!Directory.Exists(dir))
                             Directory.CreateDirectory(dir);
 
                         var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
 
-                        var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
-                        Logger.Open(logFilePath);
+                        var logFilePath = Path.Combine(dir, $"log_{datetime}.txt");
+                        Logger.Instance = new Logger(logFilePath);
 
-                        logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
-                        LoggerAI.Open(logFilePath);
+                        logFilePath = Path.Combine(dir, $"logAI_{datetime}.txt");
+                        Logger.AIInstance = new Logger(logFilePath);
 
                         var path = Path.Combine(dir, "GameScore.txt");
                         var strScore = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}{Environment.NewLine}GameScore = {GameScore}{Environment.NewLine}";
@@ -97,17 +98,18 @@ namespace TetrisApp
         public void Init()
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
             var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
             var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
 
-            var logFilePath = Path.Combine(dir, $"LOG_{datetime}.txt");
-            Logger.Open(logFilePath);
+            var logFilePath = Path.Combine(dir, $"log_{datetime}.txt");
+            Logger.Instance = new Logger(logFilePath);
 
-            logFilePath = Path.Combine(dir, $"LOG_AI_{datetime}.txt");
-            LoggerAI.Open(logFilePath);
+            logFilePath = Path.Combine(dir, $"logAI_{datetime}.txt");
+            Logger.AIInstance = new Logger(logFilePath);
 
             // 初始化设备
             connector = new Connector();
@@ -140,8 +142,8 @@ namespace TetrisApp
                 for (int j = 0; j < 20; j++)
                     array[i] |= (allGrids[9 - i, 19 - j].show ? 1U : 0) << j;
 
-            LoggerAI.Log(string.Join(',', array));
-            LoggerAI.Log($"Tetris = {tetrisData}");
+            Logger.AIInstance.Log(string.Join(',', array));
+            Logger.AIInstance.Log($"Tetris = {tetrisData}");
 
             var changeType = tetrisData % 10;
             var tetrisType = tetrisData / 10;
@@ -260,7 +262,7 @@ namespace TetrisApp
                 x++;
 
             connector.Send((byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)));
-            Logger.Log($"X = {x}, C = {change}");
+            Logger.Instance.Log($"X = {x}, C = {change}");
         }
 
         public int curType = 0;

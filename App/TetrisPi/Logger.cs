@@ -2,42 +2,44 @@
 
 namespace TetrisApp
 {
-    public class Logger
+    public class Logger : IDisposable
     {
-        private static StreamWriter writer;
+        public static Logger Instance { get; set; }
+        public static Logger AIInstance { get; set; }
 
-        private static BlockingCollection<string> queue = new BlockingCollection<string>();
+        private StreamWriter writer;
+        private CancellationTokenSource token;
+        private BlockingCollection<string> queue = new BlockingCollection<string>();
 
-        static Logger()
-        {
-            Open();
-            Task.Factory.StartNew(() =>
-            {
-                while (true)
-                {
-                    var log = queue.Take();
-                    writer.WriteLine(log);
-                }
-            }, TaskCreationOptions.LongRunning);
-        }
-
-        public static void Open()
-        {
-            var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt");
-            Open(logFilePath);
-        }
-
-        public static void Open(string logFilePath)
+        public Logger(string logFilePath)
         {
             if (File.Exists(logFilePath))
                 File.Delete(logFilePath);
-
+            token = new CancellationTokenSource();
             writer = new StreamWriter(logFilePath, true) { AutoFlush = true };
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        var log = queue.Take(token.Token);
+                        writer.WriteLine(log);
+                    }
+                }
+                catch
+                {
+                }
+            }, token.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        public static void Log(string message) => queue.Add(message);
+        public void Log(string message) => queue.Add(message);
 
-        public static void Close() => writer.Close();
+        public void Dispose()
+        {
+            token.Cancel();
+            writer.Close();
+            writer.Dispose();
+        }
     }
-
 }
