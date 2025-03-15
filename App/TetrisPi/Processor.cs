@@ -129,8 +129,8 @@ namespace TetrisApp
 
             //S
             tetrisOffset[4] = new List<SceneOffset>();
-            tetrisOffset[4].Add(new SceneOffset() { X1 = 1, Y1 = 0, X2 = 1, Y2 = 1, X3 = 2, Y3 = 1, X4 = 2, Y4 = 2 });
             tetrisOffset[4].Add(new SceneOffset() { X1 = 2, Y1 = 1, X2 = 3, Y2 = 1, X3 = 1, Y3 = 2, X4 = 2, Y4 = 2 });
+            tetrisOffset[4].Add(new SceneOffset() { X1 = 1, Y1 = 0, X2 = 1, Y2 = 1, X3 = 2, Y3 = 1, X4 = 2, Y4 = 2 });
             changeNum[4] = 2;
             //Z
             tetrisOffset[6] = new List<SceneOffset>();
