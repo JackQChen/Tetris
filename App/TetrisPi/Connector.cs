@@ -33,6 +33,12 @@ namespace TetrisApp
             {
                 serialPort = new SerialPort(portName, baudRate);
                 serialPort.DataReceived += OnDataReceived;
+
+                serialPort.WriteTimeout = 1;
+                serialPort.WriteBufferSize = 2;
+                serialPort.ReadTimeout = 1;
+                serialPort.ReadBufferSize = 32;
+
                 serialPort.Open();
 
                 Task.Factory.StartNew(() =>
