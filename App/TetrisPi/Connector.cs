@@ -172,7 +172,7 @@ namespace TetrisApp
             {
                 if (CheckCells(0b1111)) return 30;
             }
-            else if (w == 1 && h == 4)
+            else if (w == 1 && (h == 3 || h == 4))
                 return 0;
             else if (w == 4 && h == 1)
                 return 1;
