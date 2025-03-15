@@ -8,7 +8,7 @@ int columnIndex = 0; // 当前列位置
 int step = 0; // 按键状态
 unsigned long lastPressTime; //上次按键时间
 
-int keyIndex = -1, KeyCount = 0;
+int keyIndex = -1, keyCount = 0;
 int keyArray[10];
 
 void setup() {
@@ -94,7 +94,7 @@ void loop() {
 		int move = data & 0b111;
 
 		keyIndex = 0;
-		KeyCount = change + move;
+		keyCount = change + move;
 
 		for (int i = 0; i < change; i++) {
 			keyArray[keyIndex++] = 3;
@@ -128,7 +128,7 @@ void handleKeyPress(unsigned long currentTime) {
 	case 3:
 		if (currentTime - lastPressTime > 30) {
 			keyIndex++;
-			step = keyIndex >= KeyCount ? 0 : 1;
+			step = keyIndex >= keyCount ? 0 : 1;
 		}
 		break;
 	}
