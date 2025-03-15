@@ -181,8 +181,8 @@ namespace TetrisApp
             for (int i = 0; i < 10; i++)
                 for (int j = 0; j < 20; j++)
                     array[i] |= (allGrids[9 - i, 19 - j].show ? 1 : 0) << j;
-            LoggerAI.Log(string.Join(',', array));
-            LoggerAI.Log($"Tetris = {tetrisData}");
+            Logger.AIInstance.Log(string.Join(',', array));
+            Logger.AIInstance.Log($"Tetris = {tetrisData}");
             nextChangeType = tetrisData % 10;
             nextTetrisType = tetrisData / 10;
             nextChangeType = nextChangeType % changeNum[nextTetrisType];
@@ -1055,7 +1055,7 @@ namespace TetrisApp
                 x++;
 
             connector.Send((byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)));
-            Logger.Log($"X = {x}, C = {change}");
+            Logger.Instance.Log($"X = {x}, C = {change}");
         }
 
         //正在下落

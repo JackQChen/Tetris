@@ -1,31 +1,45 @@
-﻿namespace TetrisApp
+﻿using System.Collections.Concurrent;
+
+namespace TetrisApp
 {
-    public class Logger
+    public class Logger : IDisposable
     {
-        private static readonly string logFilePath;
-        private static StreamWriter writer;
+        public static Logger Instance { get; set; }
+        public static Logger AIInstance { get; set; }
 
-        static Logger()
+        private StreamWriter writer;
+        private CancellationTokenSource token;
+        private BlockingCollection<string> queue = new BlockingCollection<string>();
+
+        public Logger(string logFilePath)
         {
-            logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt");
-
             if (File.Exists(logFilePath))
                 File.Delete(logFilePath);
-
+            token = new CancellationTokenSource();
             writer = new StreamWriter(logFilePath, true) { AutoFlush = true };
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        var log = queue.Take(token.Token);
+                        writer.WriteLine(log);
+                    }
+                }
+                catch
+                {
+                }
+            }, token.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        public static void Log(string message) => writer.WriteLine(message);
+        public void Log(string message) => queue.Add(message);
 
-        public static void Close() => writer.Close();
+        public void Dispose()
+        {
+            token.Cancel();
+            writer.Close();
+            writer.Dispose();
+        }
     }
-
-    //public static class LoggerExtension
-    //{
-    //    public static string Normalize(this object obj)
-    //    {
-    //        return obj.ToString().Replace("\0", "");
-    //    }
-    //}
-
 }

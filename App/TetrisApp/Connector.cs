@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+﻿using System.Collections.Concurrent;
 using System.IO.Ports;
 using System.Text;
 
@@ -13,6 +13,7 @@ namespace TetrisApp
         byte[] receivedBuffer = new byte[4096];
 
         uint[] gridData = new uint[10];
+        BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
 
         int maxRow = -1;
         Rectangle rectGrid;
@@ -32,6 +33,15 @@ namespace TetrisApp
                 serialPort = new SerialPort(portName, baudRate);
                 serialPort.DataReceived += OnDataReceived;
                 serialPort.Open();
+
+                Task.Factory.StartNew(() =>
+                {
+                    while (true)
+                    {
+                        var data = queue.Take();
+                        UpdateGridData(data);
+                    }
+                }, TaskCreationOptions.LongRunning);
 
                 return true;
             }
@@ -55,17 +65,19 @@ namespace TetrisApp
                     if (receivedIndex == 3)
                     {
                         receivedIndex = 0;
-                        if (!UpdateGridData(receivedData)) i++;
+                        int col = receivedData[0] >> 4;
+                        if (col > 9)
+                            i++;
+                        else
+                            queue.Add(receivedData.ToArray());
                     }
                 }
             }
         }
 
-        private bool UpdateGridData(byte[] data)
+        private void UpdateGridData(byte[] data)
         {
             int col = data[0] >> 4;
-            if (col > 9)
-                return false;
 
             gridData[col] = ((uint)data[0] & 0b1111) << 16 | (uint)data[1] << 8 | data[2];
 
@@ -99,15 +111,15 @@ namespace TetrisApp
 
                 var strLog = new StringBuilder();
                 for (int i = 0; i < gridData.Length; i++)
-                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i].ToString().Replace("\0", "")}");
-                Logger.Log(strLog.ToString());
+                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                Logger.Instance.Log(strLog.ToString());
 
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
 
                 if (rectGrid.Top != -1 && rectGrid.Top - maxRow <= 2)
                 {
                     readyToTrigger = true;
-                    return true;
+                    return;
                 }
 
                 var tetris = MatchTetris();
@@ -123,13 +135,11 @@ namespace TetrisApp
                     {
                         readyToTrigger = false;
                         tetrisCounts.Clear();
-                        Logger.Log($"Tetris = {tetris.ToString().Replace("\0", "")}");
+                        Logger.Instance.Log($"Tetris = {tetris}");
                         OnTetrisData?.Invoke(this, tetris);
                     }
                 }
             }
-
-            return true;
         }
 
         Tuple<int, int> GetRange(uint data)
@@ -161,7 +171,7 @@ namespace TetrisApp
             {
                 if (CheckCells(0b1111)) return 30;
             }
-            else if (w == 1 && h == 4)
+            else if (w == 1 && (h == 3 || h == 4))
                 return 0;
             else if (w == 4 && h == 1)
                 return 1;
