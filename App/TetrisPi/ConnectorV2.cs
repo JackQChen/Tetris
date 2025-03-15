@@ -1,0 +1,261 @@
+using System.Collections.Concurrent;
+using System.Drawing;
+using System.IO.Ports;
+using System.Text;
+
+namespace TetrisApp
+{
+    public class ConnectorV2 : IDisposable
+    {
+        SerialPort serialPort;
+
+        int receivedIndex = 0;
+        byte[] receivedData = new byte[3];
+        byte[] receivedBuffer = new byte[4096];
+
+        uint[] gridData = new uint[10];
+        BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
+
+        int maxRow = -1;
+        Rectangle rectGrid;
+
+        bool readyToTrigger = true;
+
+        Dictionary<int, int> tetrisCounts = new Dictionary<int, int>();
+
+        public event EventHandler OnFrameData;
+        public event EventHandler<int> OnColumnData;
+        public event EventHandler<int> OnTetrisData;
+
+        public bool Init(string portName, int baudRate)
+        {
+            try
+            {
+                serialPort = new SerialPort(portName, baudRate);
+                serialPort.DataReceived += OnDataReceived;
+
+                serialPort.WriteTimeout = 1;
+                serialPort.WriteBufferSize = 2;
+                serialPort.ReadTimeout = 1;
+                serialPort.ReadBufferSize = 32;
+
+                serialPort.Open();
+
+                Task.Factory.StartNew(() =>
+                {
+                    while (true)
+                    {
+                        var data = queue.Take();
+                        UpdateGridData(data);
+                    }
+                }, TaskCreationOptions.LongRunning);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            int bytesToRead = serialPort.BytesToRead;
+            if (bytesToRead > 0)
+            {
+                int bytesRead = serialPort.Read(receivedBuffer, 0, bytesToRead);
+                for (int i = 0; i < bytesRead; i++)
+                {
+                    receivedData[receivedIndex] = receivedBuffer[i];
+                    receivedIndex++;
+
+                    if (receivedIndex == 3)
+                    {
+                        receivedIndex = 0;
+                        int col = receivedData[0] >> 4;
+                        if (col > 9)
+                            i++;
+                        else
+                            queue.Add(receivedData.ToArray());
+                    }
+                }
+            }
+        }
+
+        private void UpdateGridData(byte[] data)
+        {
+            int col = data[0] >> 4;
+
+            gridData[col] = ((uint)data[0] & 0b1111) << 16 | (uint)data[1] << 8 | data[2];
+
+            OnColumnData?.Invoke(this, col);
+
+            if (col == 9)
+            {
+                OnFrameData?.Invoke(this, EventArgs.Empty);
+
+                var combined = 0U;
+                for (int i = 0; i < gridData.Length; i++)
+                    combined |= gridData[i];
+
+                var range = GetRange(combined);
+                maxRow = range.Item1 == 0 ? range.Item2 : -1;
+
+                combined &= 0xffffffff << (maxRow + 1);
+                range = GetRange(combined);
+                var startRow = range.Item1;
+                var endRow = range.Item2;
+
+                combined = 0;
+                for (int i = 0; i < gridData.Length; i++)
+                {
+                    if (((0xffffffff << (maxRow + 1)) & gridData[i]) > 0)
+                        combined |= 1U << i;
+                }
+                range = GetRange(combined);
+                var startColumn = range.Item1;
+                var endColumn = range.Item2;
+
+                var strLog = new StringBuilder();
+                for (int i = 0; i < gridData.Length; i++)
+                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                Logger.Instance.Log(strLog.ToString());
+
+                rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
+
+                if (rectGrid.Top != -1 && rectGrid.Top - maxRow <= 2)
+                {
+                    readyToTrigger = true;
+                    return;
+                }
+
+                var tetris = MatchTetris();
+
+                if (readyToTrigger && tetris != -1)
+                {
+                    if (tetrisCounts.ContainsKey(tetris))
+                        tetrisCounts[tetris]++;
+                    else
+                        tetrisCounts[tetris] = 1;
+
+                    if (tetrisCounts[tetris] > 1)
+                    {
+                        readyToTrigger = false;
+                        tetrisCounts.Clear();
+                        Logger.Instance.Log($"Tetris = {tetris}");
+                        OnTetrisData?.Invoke(this, tetris);
+                    }
+                }
+            }
+        }
+
+        Tuple<int, int> GetRange(uint data)
+        {
+            var start = -1;
+            var end = -1;
+
+            for (int i = 0; i < 20; i++)
+            {
+                if ((data >> i & 0b1) == 1)
+                {
+                    if (start == -1)
+                        start = i;
+                    end = i;
+                }
+                else
+                {
+                    if (start != -1)
+                        break;
+                }
+            }
+            return Tuple.Create(start, end);
+        }
+
+        int MatchTetris()
+        {
+            int w = rectGrid.Width + 1, h = rectGrid.Height + 1;
+            if (w == 2 && h == 2)
+            {
+                if (CheckCells(0b1111)) return 30; // O
+            }
+            else if (w == 1 && (h == 3 || h == 4))
+                return 0;
+            else if (w == 4 && h == 1)
+                return 1;
+            else if (w == 2 && h == 3)
+            {
+                if (CheckCells(0b101101)) return 41; // S90
+                if (CheckCells(0b011110)) return 61; // Z90
+                if (CheckCells(0b101011)) return 20; // L0
+                if (CheckCells(0b110101)) return 22; // L180
+                if (CheckCells(0b010111)) return 10; // J0
+                if (CheckCells(0b111010)) return 12; // J180
+                if (CheckCells(0b011101)) return 51; // T90
+                if (CheckCells(0b101110)) return 53; // T270
+            }
+            else if (w == 3 && h == 2)
+            {
+                if (CheckCells(0b011110)) return 40; // S0
+                if (CheckCells(0b110011)) return 60; // Z0
+                if (CheckCells(0b111100)) return 21; // L90
+                if (CheckCells(0b001111)) return 23; // L270
+                if (CheckCells(0b100111)) return 11; // J90
+                if (CheckCells(0b111001)) return 13; // J270
+                if (CheckCells(0b111010)) return 50; // T0
+                if (CheckCells(0b010111)) return 52; // T180
+            }
+            return -1;
+        }
+
+        bool CheckCells(int expected)
+        {
+            int width = rectGrid.Width + 1, height = rectGrid.Height + 1;
+            for (int row = 0; row < height; row++)
+            {
+                for (int column = 0; column < width; column++)
+                {
+                    var expectedValue = expected >> (row * width + column) & 0b1;
+                    if ((gridData[rectGrid.X + column] >> (rectGrid.Y + row) & 0b1) != expectedValue)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public int GetMaxRow()
+        {
+            return 19 - maxRow;
+        }
+
+        public Rectangle GetRectangle()
+        {
+            return Rectangle.FromLTRB(9 - rectGrid.Right, 19 - rectGrid.Bottom, 9 - rectGrid.Left, 19 - rectGrid.Top);
+        }
+
+        public Tuple<int, int> GetColumnRange()
+        {
+            return Tuple.Create(9 - 0, 9 - 0);
+        }
+
+        public bool GetCellStatus(int column, int row)
+        {
+            return (gridData[9 - column] >> (19 - row) & 0b1) == 1;
+        }
+
+        public void Send(byte data)
+        {
+            if (data == 0)
+                return;
+            serialPort.BaseStream.WriteByte(data);
+            serialPort.BaseStream.Flush();
+        }
+
+        public void Dispose()
+        {
+            serialPort.Close();
+            serialPort.Dispose();
+        }
+
+    }
+
+}
