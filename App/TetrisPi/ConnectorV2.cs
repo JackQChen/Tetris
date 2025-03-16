@@ -98,9 +98,7 @@ namespace TetrisApp
                 Logger.Instance.Log(strLog.ToString());
 
                 OnFrameData?.Invoke(this, EventArgs.Empty);
-            }
-            else if (col == 6)
-            {
+
                 if ((DateTime.Now - lastTrigger).TotalMilliseconds < 500)
                     return;
 
@@ -134,7 +132,7 @@ namespace TetrisApp
                     else
                         tetrisCounts[tetris] = 1;
 
-                    if (tetrisCounts[tetris] >= 1)
+                    if (tetrisCounts[tetris] > 1)
                     {
                         lastTrigger = DateTime.Now;
                         tetrisCounts.Clear();

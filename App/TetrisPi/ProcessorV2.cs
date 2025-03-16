@@ -124,7 +124,7 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            var maxRow = connector.GetMaxRow() - 1;
+            var maxRow = connector.GetMaxRow();
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < 20; j++)
