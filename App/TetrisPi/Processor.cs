@@ -42,7 +42,7 @@ namespace TetrisApp
         //变体数量
         int[] changeNum = new int[7];
 
-        Connector connector;
+        ConnectorV2 connector;
         AudioPlayer player;
         bool isWindows = false;
         DateTime lastUpdatedTime = DateTime.Now;
@@ -187,7 +187,7 @@ namespace TetrisApp
             Logger.AIInstance = new Logger(logFilePath);
 
             // 初始化设备
-            connector = new Connector();
+            connector = new ConnectorV2();
             connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             connector.OnTetrisData += Connector_OnTetrisData;
 
@@ -201,7 +201,7 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            var maxRow = connector.GetMaxRow() - 1;
+            var maxRow = connector.GetMaxRow();
             for (int i = 0; i < 10; i++)
             {
                 for (int j = 0; j < 20; j++)
