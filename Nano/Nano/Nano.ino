@@ -104,12 +104,11 @@ void loop() {
 			keyArray[keyIndex++] = pin;
 		}
 
-		for (int i = minCount; i < change; i++) {
+		for (int i = minCount; i < change; i++)
 			keyArray[keyIndex++] = 3;
-		}
-		for (int i = minCount; i < move; i++) {
+
+		for (int i = minCount; i < move; i++)
 			keyArray[keyIndex++] = pin;
-		}
 
 		keyIndex = 0;
 		step = 1;
