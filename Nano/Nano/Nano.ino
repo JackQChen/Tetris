@@ -96,18 +96,11 @@ void loop() {
 		keyIndex = 0;
 		keyCount = change + move;
 
+		for (int i = 0; i < change; i++)
+			keyArray[keyIndex++] = 3;
+
 		int pin = dir == 0 ? 4 : 5;
-		int minCount = change < move ? change : move;
-
-		for (int i = 0; i < minCount; i++) {
-			keyArray[keyIndex++] = 3;
-			keyArray[keyIndex++] = pin;
-		}
-
-		for (int i = minCount; i < change; i++)
-			keyArray[keyIndex++] = 3;
-
-		for (int i = minCount; i < move; i++)
+		for (int i = 0; i < move; i++)
 			keyArray[keyIndex++] = pin;
 
 		keyIndex = 0;
