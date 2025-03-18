@@ -162,6 +162,18 @@ namespace TetrisApp
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+            var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
+
+            var logFilePath = Path.Combine(dir, $"log_{datetime}.txt");
+            Logger.Instance = new Logger(logFilePath);
+
+            logFilePath = Path.Combine(dir, $"logAI_{datetime}.txt");
+            Logger.AIInstance = new Logger(logFilePath);
+
             // 初始化设备
             connector = new Connector();
             connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
@@ -468,7 +480,7 @@ namespace TetrisApp
         void CalcAICtrl()
         {
             // CalcAI1();
-            //CalcAI2();
+            CalcAI2();
             //CalcAI3();
         }
 
@@ -690,7 +702,7 @@ namespace TetrisApp
                 g.show = true;
             }
 
-            //RunDeviceSteps(moveX, R_Change);
+            RunDeviceSteps(moveX, R_Change);
             RunAISteps(moveX, R_Change);
         }
 
