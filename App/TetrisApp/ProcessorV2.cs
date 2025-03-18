@@ -9,7 +9,7 @@ namespace TetrisApp
             public bool show;
         }
 
-        internal ConnectorV2 connector;
+        internal Connector connector;
 
         bool isWindows = false;
         DateTime lastUpdatedTime = DateTime.Now;
@@ -88,7 +88,7 @@ namespace TetrisApp
                         //    ftpHandler.SyncFiles();
                         //});
                         // 重置
-                        connector.Send(0xff);
+                        //connector.Send(0xff);
                         GameScore = 0;
                     }
                 }
@@ -112,7 +112,7 @@ namespace TetrisApp
             Logger.AIInstance = new Logger(logFilePath);
 
             // 初始化设备
-            connector = new ConnectorV2();
+            connector = new Connector();
             connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
             connector.OnTetrisData += Connector_OnTetrisData;
 
