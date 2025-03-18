@@ -106,10 +106,9 @@ namespace TetrisApp
         //当前游戏状态
         GameState gameState = GameState.NextRound;
 
-        Connector connector;
         bool isWindows = false;
 
-        Processor processor = new Processor();
+        ProcessorV2 processor = new ProcessorV2();
 
         public MainForm()
         {
@@ -162,22 +161,9 @@ namespace TetrisApp
         {
             isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-            var dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            var datetime = DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss");
-
-            var logFilePath = Path.Combine(dir, $"log_{datetime}.txt");
-            Logger.Instance = new Logger(logFilePath);
-
-            logFilePath = Path.Combine(dir, $"logAI_{datetime}.txt");
-            Logger.AIInstance = new Logger(logFilePath);
-
             // 初始化设备
-            connector = new Connector();
-            connector.Init(isWindows ? "COM2" : "/dev/ttyUSB0", 115200); // 修改为实际的串口号
-            connector.OnTetrisData += Connector_OnTetrisData;
+            processor.Init();
+            processor.connector.OnTetrisData += Connector_OnTetrisData;
 
             base.OnLoad(e);
             Restart();
@@ -185,10 +171,10 @@ namespace TetrisApp
 
         private void Connector_OnTetrisData(object? sender, int tetrisData)
         {
-            var maxRow = connector.GetMaxRow() - 1;
+            var maxRow = processor.connector.GetMaxRow() - 1;
             for (int i = 0; i < 10; i++)
                 for (int j = maxRow; j < 20; j++)
-                    allGrids[i, j].show = connector.GetCellStatus(i, j);
+                    allGrids[i, j].show = processor.connector.GetCellStatus(i, j);
             int[] array = new int[10];
             for (int i = 0; i < 10; i++)
                 for (int j = 0; j < 20; j++)
@@ -479,9 +465,9 @@ namespace TetrisApp
 
         void CalcAICtrl()
         {
-            // CalcAI1();
-            CalcAI2();
-            //CalcAI3();
+            //CalcAI1();
+            //CalcAI2();
+            CalcAI3();
         }
 
         class CheckResult
@@ -1066,7 +1052,7 @@ namespace TetrisApp
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
 
-            connector.Send((byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)));
+            processor.connector.Send((byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)));
             Logger.Instance.Log($"X = {x}, C = {change}");
         }
 
@@ -1290,10 +1276,10 @@ namespace TetrisApp
             {
                 for (int j = 0; j < 20; j++)
                 {
-                    if (connector.GetMaxRow() == j)
+                    if (processor.connector.GetMaxRow() == j)
                         g.FillRectangle(Brushes.Red, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
 
-                    var rect = connector.GetRectangle();
+                    var rect = processor.connector.GetRectangle();
                     if (rect.Top == j)
                         g.FillRectangle(Brushes.LightGreen, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
                     if (rect.Bottom == j)
@@ -1303,7 +1289,7 @@ namespace TetrisApp
                     if (rect.Right == i)
                         g.FillRectangle(Brushes.DeepSkyBlue, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
 
-                    if (connector.GetCellStatus(i, j))
+                    if (processor.connector.GetCellStatus(i, j))
                         g.FillRectangle(showBrush, 350 + i * 10 + i, 440 + j * 10 + j, 10, 10);
                 }
             }

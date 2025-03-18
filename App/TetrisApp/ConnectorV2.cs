@@ -1,10 +1,11 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
+using System.Drawing;
 using System.IO.Ports;
 using System.Text;
 
 namespace TetrisApp
 {
-    public class Connector : IDisposable
+    public class ConnectorV2 : IDisposable
     {
         SerialPort serialPort;
 
@@ -15,10 +16,10 @@ namespace TetrisApp
         uint[] gridData = new uint[10];
         BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
 
-        int maxRow = -1;
+        int maxRow = 15;
         Rectangle rectGrid;
 
-        bool readyToTrigger = true;
+        DateTime lastTrigger = DateTime.MinValue;
 
         Dictionary<int, int> tetrisCounts = new Dictionary<int, int>();
 
@@ -32,6 +33,12 @@ namespace TetrisApp
             {
                 serialPort = new SerialPort(portName, baudRate);
                 serialPort.DataReceived += OnDataReceived;
+
+                serialPort.WriteTimeout = 1;
+                serialPort.WriteBufferSize = 2;
+                serialPort.ReadTimeout = 1;
+                serialPort.ReadBufferSize = 32;
+
                 serialPort.Open();
 
                 Task.Factory.StartNew(() =>
@@ -85,46 +92,40 @@ namespace TetrisApp
 
             if (col == 9)
             {
+                var strLog = new StringBuilder();
+                for (int i = 0; i < gridData.Length; i++)
+                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
+                Logger.Instance.Log(strLog.ToString());
+
                 OnFrameData?.Invoke(this, EventArgs.Empty);
 
+                if ((DateTime.Now - lastTrigger).TotalMilliseconds < 500)
+                    return;
+
                 var combined = 0U;
-                for (int i = 0; i < gridData.Length; i++)
+                for (int i = 3; i < 7; i++)
                     combined |= gridData[i];
 
+                combined &= 0xffffffff << 16;
                 var range = GetRange(combined);
-                maxRow = range.Item1 == 0 ? range.Item2 : -1;
-
-                combined &= 0xffffffff << (maxRow + 1);
-                range = GetRange(combined);
                 var startRow = range.Item1;
                 var endRow = range.Item2;
 
                 combined = 0;
-                for (int i = 0; i < gridData.Length; i++)
+                for (int i = 3; i < 7; i++)
                 {
-                    if (((0xffffffff << (maxRow + 1)) & gridData[i]) > 0)
+                    if (((0xffffffff << 16) & gridData[i]) > 0)
                         combined |= 1U << i;
                 }
                 range = GetRange(combined);
                 var startColumn = range.Item1;
                 var endColumn = range.Item2;
 
-                var strLog = new StringBuilder();
-                for (int i = 0; i < gridData.Length; i++)
-                    strLog.Append($"{(i == 0 ? "" : ",")}{gridData[i]}");
-                Logger.Instance.Log(strLog.ToString());
-
                 rectGrid = Rectangle.FromLTRB(startColumn, startRow, endColumn, endRow);
-
-                if (rectGrid.Top != -1 && rectGrid.Top - maxRow <= 2)
-                {
-                    readyToTrigger = true;
-                    return;
-                }
 
                 var tetris = MatchTetris();
 
-                if (readyToTrigger && tetris != -1)
+                if (tetris != -1)
                 {
                     if (tetrisCounts.ContainsKey(tetris))
                         tetrisCounts[tetris]++;
@@ -133,7 +134,7 @@ namespace TetrisApp
 
                     if (tetrisCounts[tetris] > 1)
                     {
-                        readyToTrigger = false;
+                        lastTrigger = DateTime.Now;
                         tetrisCounts.Clear();
                         Logger.Instance.Log($"Tetris = {tetris}");
                         OnTetrisData?.Invoke(this, tetris);
@@ -169,7 +170,7 @@ namespace TetrisApp
             int w = rectGrid.Width + 1, h = rectGrid.Height + 1;
             if (w == 2 && h == 2)
             {
-                if (CheckCells(0b1111)) return 30;
+                if (CheckCells(0b1111)) return 30; // O
             }
             else if (w == 1 && (h == 3 || h == 4))
                 return 0;
