@@ -252,8 +252,9 @@ namespace TetrisApp
         {
             if (change == 0 && move == 0)
                 return;
-            var cross = (change == 3 && move > 3) ? 1 : 0;
-            var data = (byte)(cross << 7 | (change << 4) | ((move > 0 ? 1 : 0) << 3) | ((move > 0 ? 1 : -1) * move));
+            var steps = (move > 0 ? 1 : -1) * move;
+            var cross = (change == 3 && steps > 3) ? 1 : 0;
+            var data = (byte)(cross << 7 | (change << 4) | ((move > 0 ? 1 : 0) << 3) | steps);
             serialPort.BaseStream.WriteByte(data);
             serialPort.BaseStream.Flush();
         }
