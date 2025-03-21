@@ -16,7 +16,6 @@ namespace TetrisApp
         uint[] gridData = new uint[10];
         BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
 
-        int maxRow = 15;
         Rectangle rectGrid;
 
         DateTime lastTrigger = DateTime.MinValue;
@@ -218,7 +217,7 @@ namespace TetrisApp
 
         public int GetMaxRow()
         {
-            return 19 - maxRow;
+            return 4;
         }
 
         public Rectangle GetRectangle()
@@ -228,7 +227,7 @@ namespace TetrisApp
 
         public Tuple<int, int> GetColumnRange()
         {
-            return Tuple.Create(9 - 0, 9 - 0);
+            return Tuple.Create(9, 9);
         }
 
         public bool GetCellStatus(int column, int row)
@@ -236,10 +235,18 @@ namespace TetrisApp
             return (gridData[9 - column] >> (19 - row) & 0b1) == 1;
         }
 
-        public void Send(byte data)
+        public void Reset()
         {
-            if (data == 0)
+            serialPort.BaseStream.WriteByte(0xff);
+            serialPort.BaseStream.Flush();
+        }
+
+        public void Send(int change, int move)
+        {
+            if (change == 0 && move == 0)
                 return;
+            var cross = (change == 3 && move > 3) ? 1 : 0;
+            var data = (byte)(cross << 7 | (change << 4) | ((move > 0 ? 1 : 0) << 3) | ((move > 0 ? 1 : -1) * move));
             serialPort.BaseStream.WriteByte(data);
             serialPort.BaseStream.Flush();
         }

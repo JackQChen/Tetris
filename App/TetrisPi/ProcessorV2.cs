@@ -88,7 +88,7 @@ namespace TetrisApp
                         //    ftpHandler.SyncFiles();
                         //});
                         // 重置
-                        connector.Send(0xff);
+                        connector.Reset();
                         GameScore = 0;
                     }
                 }
@@ -261,7 +261,7 @@ namespace TetrisApp
             else if (type == 1 || type == 2 || type == 4 || type == 5 || type == 6)
                 x++;
 
-            connector.Send((byte)((change << 4) | ((x > 0 ? 1 : 0) << 3) | ((x > 0 ? 1 : -1) * x)));
+            connector.Send(change, x);
             Logger.Instance.Log($"X = {x}, C = {change}");
         }
 

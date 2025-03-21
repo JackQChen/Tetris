@@ -89,19 +89,39 @@ void loop() {
 			return;
 		}
 
-		int change = (data >> 4) & 0b1111;
-		int dir = (data >> 3) & 0b1;
+		int cross = data >> 7 & 0b1;
+		int change = data >> 4 & 0b111;
+		int dir = data >> 3 & 0b1;
 		int move = data & 0b111;
 
 		keyIndex = 0;
 		keyCount = change + move;
 
-		for (int i = 0; i < change; i++)
-			keyArray[keyIndex++] = 3;
-
 		int pin = dir == 0 ? 4 : 5;
-		for (int i = 0; i < move; i++)
-			keyArray[keyIndex++] = pin;
+
+		if (cross == 0)
+		{
+			for (int i = 0; i < change; i++)
+				keyArray[keyIndex++] = 3;
+
+			for (int i = 0; i < move; i++)
+				keyArray[keyIndex++] = pin;
+		}
+		else
+		{
+			int minCount = change < move ? change : move;
+
+			for (int i = 0; i < minCount; i++) {
+				keyArray[keyIndex++] = 3;
+				keyArray[keyIndex++] = pin;
+			}
+
+			for (int i = minCount; i < change; i++)
+				keyArray[keyIndex++] = 3;
+
+			for (int i = minCount; i < move; i++)
+				keyArray[keyIndex++] = pin;
+		}
 
 		keyIndex = 0;
 		step = 1;
