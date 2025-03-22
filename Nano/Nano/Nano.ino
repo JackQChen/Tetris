@@ -112,15 +112,15 @@ void loop() {
 			int minCount = change < move ? change : move;
 
 			for (int i = 0; i < minCount; i++) {
-				keyArray[keyIndex++] = 3;
 				keyArray[keyIndex++] = pin;
-			}
-
-			for (int i = minCount; i < change; i++)
 				keyArray[keyIndex++] = 3;
+			}
 
 			for (int i = minCount; i < move; i++)
 				keyArray[keyIndex++] = pin;
+
+			for (int i = minCount; i < change; i++)
+				keyArray[keyIndex++] = 3;
 		}
 
 		keyIndex = 0;
