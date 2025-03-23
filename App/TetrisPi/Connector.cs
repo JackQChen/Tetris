@@ -176,6 +176,8 @@ namespace TetrisApp
             int w = rectGrid.Width + 1, h = rectGrid.Height + 1;
             if (w == 2 && h == 2)
             {
+                if (CheckCells(0b0111)) return 10; // J0
+                if (CheckCells(0b1011)) return 20; // L0
                 if (CheckCells(0b1111)) return 30; // O
             }
             else if (w == 1 && (h == 3 || h == 4))
