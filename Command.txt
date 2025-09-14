@@ -1,9 +1,24 @@
-﻿# 修改root密码
+﻿﻿# 修改root密码
 sudo passwd root
 
 # 允许root进行ssh登录
 nano /etc/ssh/sshd_config
 PermitRootLogin yes
+PasswordAuthentication yes
+
+# 操作clash
+cd ~/clash && nohup ./clash -d . > /dev/null 2>&1 &
+pkill -f clash
+
+# 配置代理
+nano ~/.bashrc
+export http_proxy=http://127.0.0.1:7890
+export https_proxy=http://127.0.0.1:7890
+export all_proxy=socks5://127.0.0.1:7891
+export no_proxy="localhost,127.0.0.0/8,::1"
+
+# 验证
+curl -I github.com
 
 # 树莓派换源
 # 修改/etc/apt/sources.list内容将deb.debian.org域名换成
